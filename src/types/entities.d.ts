@@ -114,3 +114,74 @@ interface ProductImage {
   sort_order: number;
   is_deleted: boolean;
 }
+
+
+
+/* =========================================
+   PAYMENT METODO DE PAGO
+========================================= */
+interface PaymentMetodoPago {
+  id: string; // uuid
+  user_id: string; // FK -> users.id
+  type_id: string; // FK -> proveedores.id
+  last_4_digits: string; // últimos 4 dígitos tarjeta
+  expires_card: string; // formato MM/YY o ISO date
+}
+
+/* =========================================
+   PAYMENT PEDIDO
+========================================= */
+
+interface PaymentPedido {
+  id: string; // uuid
+  user_id_FK: string; // FK -> users.id
+  enum_status: PaymentOrderStatus; // estado actual del pedido
+  total_amount: number; // valor total
+  created_at: string; // ISO timestamp
+  finish_at: string | null; // puede ser null si no ha finalizado
+}
+/* =========================================
+   PAYMENT CARRITO
+========================================= */
+interface PaymentCarrito {
+  id: string; // uuid
+  user_id: string; // FK -> users.id
+}
+
+/* =========================================
+   PAYMENT SEGUIMIENTO ACTUAL
+========================================= */
+
+interface PaymentSeguimientoActual {
+  id_order_PK: string; // PK y FK -> pedido.id
+  enum_status_pk: PaymentOrderStatus; // estado actual
+  updated_at: string; // ISO timestamp
+}
+
+interface User {
+    id: string
+    first_name: string
+    last_name: string
+    email: string
+    password_hash: string
+    phone: string
+    photo_url: string 
+    is_active: boolean
+    email_verified: boolean
+    role: Roles
+    created_at: Date
+    updated_at: Date
+    is_deleted: boolean
+}
+
+interface Address {
+    id: string
+    user_id: string
+    country: string
+    state: string
+    city: string
+    postal_code: string
+    street_address: string
+    reference: string
+    is_default: boolean
+}

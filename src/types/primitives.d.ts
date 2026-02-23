@@ -85,3 +85,11 @@ export interface Category {
   slug: string;
   is_deleted: boolean;
 }
+
+/* =========================================
+   PAYMENT PROVEEDORES DISPONIBLES
+========================================= */
+// interface PaymentProveedor {
+//   id: string; // uuid
+//   name: string; // nombre proveedor
+// }

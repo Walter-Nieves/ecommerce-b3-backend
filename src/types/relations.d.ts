@@ -21,3 +21,14 @@ interface ProductCategory {
   category_id: number;
   is_deleted: boolean;
 }
+
+/* =========================================
+   PAYMENT ITEM CARRITO
+========================================= */
+
+export interface PaymentItemCarrito {
+  id: string; // uuid
+  shopping_cart_id_FK: string; // FK -> carrito.id
+  product_variant_id: string; // FK -> product_variant.id
+  amount: number; // cantidad del producto
+}
