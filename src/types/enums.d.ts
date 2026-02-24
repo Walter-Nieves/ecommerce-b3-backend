@@ -37,8 +37,8 @@ type PaymentProviderType =
   | "mercadopago"
   | "wompi";
 
-enum Roles {
-    BUYER = 'buyer',
-    SELLER = 'seller',
-    ADMIN = 'admin'
+enum Role {
+    Buyer = 'Buyer',
+    Seller = 'Seller',
+    Admin = 'Admin'
 }
