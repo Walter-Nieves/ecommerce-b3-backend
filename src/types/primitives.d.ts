@@ -1,10 +1,10 @@
 /** Tipo primitivo Tag
- * @property {number} id - ID del tag
+ * @property {string} id - ID del tag
  * @property {string} name - Nombre del tag mostrable para el usuario
  * @property {boolean} is_deleted - Indica si el tag ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Tag {
-  id: number;
+  id: string; //uuid
   name: string;
   is_deleted: boolean;
 }
@@ -15,7 +15,7 @@ interface Tag {
  * @property {string} slug - Slug del material para uso interno, marcar como único para evitar duplicados
  * @property {string} sku - SKU del material para uso interno, marcar como único para evitar duplicados
  * @Info('El sku debe tener especificamente 2 letras o numeros')
-* @property {boolean} is_deleted - Indica si el material ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
+ * @property {boolean} is_deleted - Indica si el material ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Material {
   id: number;
@@ -85,11 +85,3 @@ export interface Category {
   slug: string;
   is_deleted: boolean;
 }
-
-/* =========================================
-   PAYMENT PROVEEDORES DISPONIBLES
-========================================= */
-// interface PaymentProveedor {
-//   id: string; // uuid
-//   name: string; // nombre proveedor
-// }
