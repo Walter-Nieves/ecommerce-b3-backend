@@ -12,7 +12,7 @@ router.post("/", );
 router.put("/:id", );
 
 router.delete("/force/:id", );
-router.delete("/:id", );
+router.delete("/soft/:id", );
 
 router.patch("/restore/:id", );
 
