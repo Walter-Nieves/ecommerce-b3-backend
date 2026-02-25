@@ -94,7 +94,7 @@ export async function updateClasp(req: Request, res: Response) {
 /* ===============================
    SOFT DELETE
 ================================ */
-export async function deleteClasp(req: Request, res: Response) {
+export async function softDeleteClasp(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
 

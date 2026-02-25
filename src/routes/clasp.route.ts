@@ -6,7 +6,7 @@ import {
   getClaspById,
   createClasp,
   updateClasp,
-  deleteClasp,
+  softDeleteClasp,
   restoreClasp,
   forceDeleteClasp,
 } from "../controllers/clasp.controller";
@@ -21,7 +21,7 @@ router.post("/", createClasp);
 router.put("/:id", updateClasp);
 
 router.delete("/force/:id", forceDeleteClasp);
-router.delete("/:id", deleteClasp);
+router.delete("/soft/:id", softDeleteClasp);
 
 router.patch("/restore/:id", restoreClasp);
 

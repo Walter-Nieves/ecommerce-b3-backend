@@ -6,7 +6,7 @@ import {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory,
+  softDeleteCategory,
   restoreCategory,
   forceDeleteCategory,
 } from "../controllers/category.controller";
@@ -21,7 +21,7 @@ router.post("/", createCategory);
 router.put("/:id", updateCategory);
 
 router.delete("/force/:id", forceDeleteCategory);
-router.delete("/:id", deleteCategory);
+router.delete("/soft/:id", softDeleteCategory);
 
 router.patch("/restore/:id", restoreCategory);
 

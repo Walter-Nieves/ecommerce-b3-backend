@@ -93,7 +93,7 @@ export async function updateCategory(req: Request, res: Response) {
 /* ===============================
    SOFT DELETE
 ================================ */
-export async function deleteCategory(req: Request, res: Response) {
+export async function softDeleteCategory(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
 
