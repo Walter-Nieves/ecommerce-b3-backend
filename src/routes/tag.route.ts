@@ -11,8 +11,8 @@ router.get("/all", getAllTag);
 
 // router.put("/:id", );
 
-// router.delete("/force/:id", );
-// router.delete("/:id", );
+router.delete("/force/:id", );
+router.delete("/:id", );
 
 // router.patch("/restore/:id", );
 

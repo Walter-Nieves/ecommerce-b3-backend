@@ -12,13 +12,13 @@ interface ProductTag {
 
 /** Relación entre producto y categoría
  * @property {number} product_id - ID del producto
- * @property {number} Clasp_id - ID de la categoría
+ * @property {number} category_id - ID de la categoría
  * @property {boolean} is_deleted - Indica si la relación ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  * @Info('La combinación de product_id y Clasp_id debe ser única, formando una **llave compuesta**')
  */
-interface ProductClasp {
+interface ProductCategory {
   product_id: number;
-  Clasp_id: number;
+  category_id: number;
   is_deleted: boolean;
 }
 
