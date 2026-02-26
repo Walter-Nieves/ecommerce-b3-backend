@@ -1,3 +1,22 @@
+type rating = 1 | 2 | 3 | 4 | 5;
+
+type stock_state = 'in_stock' | 'out_of_stock' | 'pre_order';
+  
+type PaymentOrderStatus =
+  | "pending" // pendiente
+  | "paid"    // pagado
+  | "processing"  //en proceso
+  | "shipped"  // enviado
+  | "delivered"  //entregado
+  | "cancelled" //cancelado
+  | "refunded"; //reembolsado
+
+type PaymentProviderType =
+  | "stripe"
+  | "paypal"
+  | "mercadopago"
+  | "wompi";
+
 /** Tipo primitivo Tag
  * @property {string} id - ID del tag
  * @property {string} name - Nombre del tag mostrable para el usuario
@@ -65,7 +84,7 @@ interface Clasp {
  * @property {string} logo_url - URL del logo de la marca, marcar como único para evitar duplicados
  * @property {boolean} is_deleted - Indica si la marca ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  */
-export interface Brand {
+interface Brand {
   id: string;
   name: string;
   slug: string;
@@ -80,7 +99,7 @@ export interface Brand {
  * @property {string} slug - Slug de la categoría para uso interno, marcar como único para evitar duplicados
  * @property {boolean} is_deleted - Indica si la categoría ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  */
-export interface Category {
+interface Category {
   id: string;
   name: string;
   slug: string;

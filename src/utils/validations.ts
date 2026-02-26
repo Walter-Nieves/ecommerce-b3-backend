@@ -1,7 +1,10 @@
-import { Response } from "express";
 import dotenv from "dotenv";
+import { Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import uuid from "uuid";
+import { Role } from "../types/enums";
+
+
 dotenv.config();
 
 const SECRET: string = process.env.JWT_SECRET as string;
