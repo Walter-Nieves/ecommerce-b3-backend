@@ -12,7 +12,7 @@ router.post("/", createTag );
 router.put("/:id",updateTag );
 
 router.delete("/force/:id", forceDeleteTag );
-router.delete("/:id", softDeleteTag );
+router.delete("/soft/:id", softDeleteTag );
 
 router.patch("/restore/:id", restoreTag);
 

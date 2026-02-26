@@ -18,7 +18,7 @@ interface Tag {
  * @property {boolean} is_deleted - Indica si el material ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Material {
-  id: number;
+  id: string; //uuid
   name: string;
   slug: string;
   sku: string;
