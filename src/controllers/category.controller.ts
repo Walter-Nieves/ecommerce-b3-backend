@@ -38,7 +38,7 @@ export async function getDeletedCategories(req: Request, res: Response) {
 ================================ */
 export async function getCategoryById(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     const category = await sql`
       SELECT * FROM category WHERE id = ${id}
@@ -74,7 +74,7 @@ export async function createCategory(req: Request, res: Response) {
 ================================ */
 export async function updateCategory(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
     const { name, slug } = req.body;
 
     const updated = await sql`
@@ -95,7 +95,7 @@ export async function updateCategory(req: Request, res: Response) {
 ================================ */
 export async function softDeleteCategory(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     await sql`
       UPDATE category
@@ -114,7 +114,7 @@ export async function softDeleteCategory(req: Request, res: Response) {
 ================================ */
 export async function restoreCategory(req: Request, res: Response) {
   try {
-   const id = Number(req.params.id);
+   const id = req.params.id as string;
 
     await sql`
       UPDATE category
@@ -133,8 +133,8 @@ export async function restoreCategory(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteCategory(req: Request, res: Response) {
   try {
-   const id = Number(req.params.id);
-                         
+   const id = req.params.id as string;
+
     await sql` 
       DELETE FROM category 
       WHERE id = ${id}  

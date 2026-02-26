@@ -12,7 +12,7 @@ router.post("/", createMaterial);
 router.put("/:id", updateMaterial);
 
 router.delete("/force/:id", forceDeleteMaterial);
-router.delete("/:id", softDeleteMaterial  );
+router.delete("/soft/:id", softDeleteMaterial  );
 
 router.patch("/restore/:id", restoreMaterial );
 

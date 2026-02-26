@@ -38,7 +38,7 @@ export async function getDeletedClasps(req: Request, res: Response) {
 ================================ */
 export async function getClaspById(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     const Clasp = await sql`
       SELECT * FROM clasp WHERE id = ${id}
@@ -75,7 +75,7 @@ export async function createClasp(req: Request, res: Response) {
 ================================ */
 export async function updateClasp(req: Request, res: Response) {
   try {
-   const id = Number(req.params.id);
+   const id = req.params.id as string;
     const { name, slug } = req.body;
 
     const updated = await sql`
@@ -96,7 +96,7 @@ export async function updateClasp(req: Request, res: Response) {
 ================================ */
 export async function softDeleteClasp(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     await sql`
       UPDATE clasp
@@ -115,7 +115,7 @@ export async function softDeleteClasp(req: Request, res: Response) {
 ================================ */
 export async function restoreClasp(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     await sql`
       UPDATE clasp
@@ -134,7 +134,7 @@ export async function restoreClasp(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteClasp(req: Request, res: Response) {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id as string;
 
     await sql`
       DELETE FROM clasp
