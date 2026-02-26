@@ -12,8 +12,8 @@ export async function getColor(req: Request, res: Response) {
 
 export async function postColor(req: Request, res: Response) {
     try {
-        const { name, codigo, slug, sku } = req.body;
-        const newColor = await sql`INSERT INTO COLOR (name, codigo, slug, sku) VALUES (${name}, ${codigo}, ${slug}, ${sku})`;
+        const { name, hex_code_id, slug, sku } = req.body;
+        const newColor = await sql`INSERT INTO COLOR (name, hex_code_id, slug, sku) VALUES (${name}, ${hex_code_id}, ${slug}, ${sku})`;
         res.status(201).json(newColor[0]);
     } catch (error) {
         res.status(500).json({ error: "Error al crear el color" });
@@ -36,8 +36,8 @@ export async function deleteColor(req: Request, res: Response) {
 export async function putColor(req: Request, res: Response) {
     try {
         const { id } = req.params;
-        const { name, codigo, slug, sku } = req.body;
-        const updatedColor = await sql`UPDATE COLOR SET name = ${name}, codigo = ${codigo}, slug = ${slug}, sku = ${sku} WHERE id = ${id} RETURNING *`;
+        const { name, hex_code_id, slug, sku } = req.body;
+        const updatedColor = await sql`UPDATE COLOR SET name = ${name}, hex_code_id = ${hex_code_id}, slug = ${slug}, sku = ${sku} WHERE id = ${id} RETURNING *`;
         res.json(updatedColor[0]);
     } catch (error) {
         res.status(500).json({ error: "Error al actualizar el color" });
@@ -47,15 +47,15 @@ export async function putColor(req: Request, res: Response) {
 export async function patchColor(req: Request, res: Response) {
     try {
         const { id } = req.params;
-        const { name, codigo, slug, sku, is_deleted } = req.body;
+        const { name, hex_code_id, slug, sku, is_deleted } = req.body;
 
         const fields = [];
 
         if (name !== undefined) {
             fields.push(sql`name = ${name}`);
         }
-        if (codigo !== undefined) {
-            fields.push(sql`codigo = ${codigo}`);
+        if (hex_code_id !== undefined) {
+            fields.push(sql`hex_code_id = ${hex_code_id}`);
         }
         if (slug !== undefined) {
             fields.push(sql`slug = ${slug}`);
