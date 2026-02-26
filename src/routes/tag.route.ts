@@ -1,36 +1,19 @@
 import { Router } from "express";
-import { getAllTag } from "../controllers/tag.controller";
+import { createTag, forceDeleteTag, getAllTag, getAllTagDeleteds, getTagById, restoreTag, softDeleteTag, updateTag } from "../controllers/tag.controller";
 
 const router = Router();
 
 router.get("/all", getAllTag);
+router.get("/all-deleted", getAllTagDeleteds );
+router.get("/:id", getTagById );
 
-// router.get("/all-deleted", (req, res) => {
-//     res.send("all deleted");
-// });
+router.post("/", createTag );
 
-// router.get("/:id", (req, res) => {
-//     res.send("get by id");
-// });
+router.put("/:id",updateTag );
 
-// router.post("/", (req, res) => {
-//     res.send("create tag");
-// });
+router.delete("/force/:id", forceDeleteTag );
+router.delete("/soft/:id", softDeleteTag );
 
-// router.put("/:id", (req, res) => {
-//     res.send("update tag");
-// });
-
-// router.delete("/force/:id", (req, res) => {
-//     res.send("force delete");
-// });
-
-// router.delete("/soft/:id", (req, res) => {
-//     res.send("soft delete");
-// });
-
-// router.patch("/restore/:id", (req, res) => {
-//     res.send("restore tag");
-// });
+router.patch("/restore/:id", restoreTag);
 
 export default router;
