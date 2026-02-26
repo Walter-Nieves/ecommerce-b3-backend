@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
+import {responseToError, validateId} from "../utils/validations"
 
 export async function getAllTag(req: Request, res: Response) {
   try {
@@ -10,7 +11,7 @@ export async function getAllTag(req: Request, res: Response) {
     `;
     res.json(tags);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las etiquetas" });
+    return responseToError(error as Error, res);
   }
 }
 
@@ -23,18 +24,14 @@ export async function getAllTagDeleteds(req: Request, res: Response) {
     `;
     res.json(tags);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las etiquetas eliminadas" });
+    return responseToError(error as Error, res);
   }
 }
 
 
 export async function getTagById(req: Request, res: Response) {
   try {
-    const { id } = req.params
-
-    if (!id) {
-    return res.status(400).json({ error: "ID requerido" });
-    }
+    const id = validateId(req.params.id)
 
     const tag = await sql`
       SELECT * FROM tag
@@ -48,7 +45,7 @@ export async function getTagById(req: Request, res: Response) {
 
     res.json(tag[0]);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
 
@@ -68,18 +65,14 @@ export async function createTag(req: Request, res: Response) {
 
     res.status(201).json(newTag[0]);
   } catch (error) {
-    res.status(500).json({ error: "Error al crear la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
 
 export async function updateTag(req: Request, res: Response) {
   try {
-    const { id } = req.params;
+    const id = validateId(req.params.id)
     const { name } = req.body;
-
-    if (!id) {
-    return res.status(400).json({ error: "ID requerido" });
-    }
 
     if (!name) {
       return res.status(400).json({ error: "El nombre es obligatorio" });
@@ -98,17 +91,13 @@ export async function updateTag(req: Request, res: Response) {
 
     res.json(updatedTag[0]);
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
 
 export async function softDeleteTag(req: Request, res: Response) {
   try {
-    const { id } = req.params;
-
-    if (!id) {
-    return res.status(400).json({ error: "ID requerido" });
-    }
+    const id= validateId(req.params.id)
 
     const deletedTag = await sql`
       UPDATE tag
@@ -123,17 +112,13 @@ export async function softDeleteTag(req: Request, res: Response) {
 
     res.json({ message: "Etiqueta eliminada correctamente" });
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
 
 export async function forceDeleteTag(req: Request, res: Response) {
   try {
-    const { id } = req.params;
-
-    if (!id) {
-    return res.status(400).json({ error: "ID requerido" });
-    }
+    const id = validateId(req.params.id)
 
     const deletedTag = await sql`
       DELETE FROM tag
@@ -147,18 +132,14 @@ export async function forceDeleteTag(req: Request, res: Response) {
 
     res.json({ message: "Etiqueta eliminada permanentemente" });
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar permanentemente la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
 
 
 export async function restoreTag(req: Request, res: Response) {
   try {
-    const { id } = req.params;
-
-    if (!id) {
-    return res.status(400).json({ error: "ID requerido" });
-    }
+    const id = validateId(req.params.id)
 
     const restoredTag = await sql`
       UPDATE tag
@@ -173,6 +154,6 @@ export async function restoreTag(req: Request, res: Response) {
 
     res.json({ message: "Etiqueta restaurada correctamente" });
   } catch (error) {
-    res.status(500).json({ error: "Error al restaurar la etiqueta" });
+    return responseToError(error as Error, res);
   }
 }
