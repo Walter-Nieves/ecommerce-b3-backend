@@ -1,20 +1,22 @@
-import { Router } from "express"
-import { deleteColor, getColor, patchColor, postColor, putColor } from "../controllers/color.controller"
+// import { Router } from "express"
+// import { softDeleteColor, getAllColor, getColorByHexId, getAllDeletedColor, patchColor, postColor, putColor } from "../controllers/color.controller"
 
-const router = Router()
+// const router = Router()
 
-<<<<<<< HEAD
-router.get("/", getColor)
-router.post("/", postColor)
-router.put("/:id", putColor)
-router.delete("/:id", deleteColor)
-router.patch("/:id", patchColor)
-=======
-// router.get("/", getColor)
-// router.post("/",postColor)
-// router.put("/:id", putColor)
-// router.delete("/:id",deleteColor)
 // router.patch("/:id", patchColor)
->>>>>>> master
 
-export default router
+// router.get("/all", getAllColor );
+// router.get("/all-deleted", getAllDeletedColor );
+// router.get("/:id", getColorByHexId);
+
+// router.post("/", postColor)
+
+// router.put("/:id", putColor)
+
+
+// router.delete("/force/:id", forceDeleteMaterial);
+// router.delete("/soft/:id", softDeleteColor);
+
+// router.patch("/restore/:id", restoreMaterial);
+
+// export default router

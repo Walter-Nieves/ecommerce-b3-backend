@@ -26,8 +26,8 @@ interface Material {
 }
 
 /** Tipo primitivo Color
- * @property {string} hex_code_id - Código hexadecimal del color, marcar como único para evitar duplicados
- * @Info('La primary_key es el  hex_code_id')
+ * @property {string} id - ID del color
+ * @property {string} hex_code - Código hexadecimal del color, marcar como único para evitar duplicados
  * @property {string} name - Nombre del color mostrable para el usuario
  * @property {string} slug - Slug del color para uso interno, marcar como único para evitar duplicados
  * @property {string} sku - SKU del color para uso interno, marcar como único para evitar duplicados
@@ -35,7 +35,8 @@ interface Material {
  * @property {boolean} is_deleted - Indica si el color ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Color {
-  hex_code_id: string;
+  id: string; //uuid
+  hex_code: string;
   name: string;
   slug: string;
   sku: string;

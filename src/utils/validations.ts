@@ -81,5 +81,5 @@ export function validateHexCode (hex_code: unknown): string | never {
   if (typeof hex_code !== "string" || !/^#?[0-9A-Fa-f]{6}$/.test(hex_code)) { 
     resError(400, "Invalid hex code format");
   }
-  return hex_code.startsWith("#") ? hex_code : `#${hex_code}`;
+  return hex_code.startsWith("#") ? hex_code.substring(1) : hex_code;
 }

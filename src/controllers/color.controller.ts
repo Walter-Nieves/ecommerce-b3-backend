@@ -1,151 +1,199 @@
-import { Request, Response } from "express";
-import sql from "../db/supabase";
-import { resError, responseToError, validateBody } from "../utils/validations";
+// import { Request, Response } from "express";
+// import sql from "../db/supabase";
+// import { resError, responseToError, validateBody, validateHexCode } from "../utils/validations";
 
-export async function getColor(req: Request, res: Response) {
-    try {
-        const colors = await sql`
-            SELECT * FROM COLOR
-            WHERE is_deleted = false
-            ORDER BY name
-        `;
+// export async function getAllColor(req: Request, res: Response) {
+//     try {
+//         const colors = await sql`
+//             SELECT * FROM COLOR
+//             WHERE is_deleted = false
+//             ORDER BY name
+//         `;
 
-        res.json(colors);
+//         res.json(colors);
 
-    } catch (error) {
-        return responseToError(error as Error, res);
-    }
-}
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-export async function postColor(req: Request, res: Response) {
-    try {
-        validateBody(req.body, false);
+// export async function getAllDeletedColor(req: Request, res: Response) {
+//     try {
+//         const colors = await sql`
+//             SELECT * FROM COLOR
+//             WHERE is_deleted = true
+//             ORDER BY name
+//         `;
 
-        const { name, hex_code_id, slug, sku } = req.body;
+//         res.json(colors);
 
-        if (!name) resError(400, "Falta el nombre del color");
-        if (!hex_code_id) resError(400, "Falta el codigo hex del color");
-        if (!slug) resError(400, "Falta el slug del color");
-        if (!sku) resError(400, "Falta el sku del color");
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-        const newColor = await sql`
-            INSERT INTO COLOR (name, hex_code_id, slug, sku)
-            VALUES (${name}, ${hex_code_id}, ${slug}, ${sku})
-            RETURNING *
-        `;
+// export async function getColorByHexId(req: Request, res: Response) {
 
-        res.status(201).json(newColor[0]);
+//     const id = req.params.id as string;
 
-    } catch (error) {
-        return responseToError(error as Error, res);
-    }
-}
+//     try {
+//         const colors = await sql`
+//             SELECT * FROM COLOR
+//             WHERE hex_code_id = ${id}
+//             ORDER BY name
+//         `;
 
-export async function deleteColor(req: Request, res: Response) {
-    try {
-        const { id } = req.params;
+//         res.json(colors);
 
-        if (!id || isNaN(Number(id))) {
-            resError(400, "ID invalido");
-        }
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-        await sql`
-            UPDATE COLOR
-            SET is_deleted = true
-            WHERE id = ${id}
-        `;
+// export async function postColor(req: Request, res: Response) {
+//     try {
+//         validateBody(req.body, false);
 
-        res.status(204).send();
+//         const { name, hex_code_id, slug, sku } = req.body;
 
-    } catch (error) {
-        return responseToError(error as Error, res);
-    }
-}
+//         if (!name) resError(400, "Falta el nombre del color");
+//         if (!hex_code_id) resError(400, "Falta el codigo hex del color");
+//         if (!slug) resError(400, "Falta el slug del color");
+//         if (!sku) resError(400, "Falta el sku del color");
 
-export async function putColor(req: Request, res: Response) {
-    try {
-        validateBody(req.body, false);
+//         const newColor = await sql`
+//             INSERT INTO COLOR (name, hex_code_id, slug, sku)
+//             VALUES (${name}, ${hex_code_id}, ${slug}, ${sku})
+//             RETURNING *
+//         `;
 
-        const { id } = req.params;
-        const { name, hex_code_id, slug, sku } = req.body;
+//         res.status(201).json(newColor[0]);
 
-        if (!id || isNaN(Number(id))) {
-            resError(400, "ID invalido");
-        }
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-        if (!name) resError(400, "Falta el nombre del color");
-        if (!hex_code_id) resError(400, "Falta el codigo hex del color");
-        if (!slug) resError(400, "Falta el slug del color");
-        if (!sku) resError(400, "Falta el sku del color");
+// export async function softDeleteColor(req: Request, res: Response) {
+//     try {
+//         const { id } = req.params;
 
-        const updatedColor = await sql`
-            UPDATE COLOR
-            SET name = ${name},
-                hex_code_id = ${hex_code_id},
-                slug = ${slug},
-                sku = ${sku}
-            WHERE id = ${id}
-            RETURNING *
-        `;
+//         if (!id || isNaN(Number(id))) {
+//             resError(400, "ID invalido");
+//         }
 
-        res.json(updatedColor[0]);
+//         await sql`
+//             UPDATE COLOR
+//             SET is_deleted = true
+//             WHERE id = ${id}
+//         `;
 
-    } catch (error) {
-        return responseToError(error as Error, res);
-    }
-}
+//         res.status(204).send();
 
-export async function patchColor(req: Request, res: Response) {
-    try {
-        validateBody(req.body, false);
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-        const { id } = req.params;
+// export async function restoreColor(req: Request, res: Response) {
+//     try {
+//         const { id } = req.params;
 
-        if (!id || isNaN(Number(id))) {
-            resError(400, "ID invalido");
-        }
+//         if (!id || isNaN(Number(id))) {
+//             resError(400, "ID invalido");
+//         }
 
-        const { name, hex_code_id, slug, sku, is_deleted } = req.body;
+//         await sql`
+//             UPDATE COLOR
+//             SET is_deleted = false
+//             WHERE id = ${id}
+//         `;
 
-        const fields = [];
+//         res.status(204).send();
 
-        if (name !== undefined) {
-            fields.push(sql`name = ${name}`);
-        }
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-        if (hex_code_id !== undefined) {
-            fields.push(sql`hex_code_id = ${hex_code_id}`);
-        }
+// export async function putColor(req: Request, res: Response) {
+//     try {
+//         validateBody(req.body, false);
 
-        if (slug !== undefined) {
-            fields.push(sql`slug = ${slug}`);
-        }
+//         const { id } = req.params;
+//         const { name, slug, sku } = req.body;
 
-        if (sku !== undefined) {
-            fields.push(sql`sku = ${sku}`);
-        }
+//         const hex_code_id = validateHexCode(id);
 
-        if (is_deleted !== undefined) {
-            if (typeof is_deleted !== "boolean") {
-                resError(400, "is_deleted debe ser boolean");
-            }
-            fields.push(sql`is_deleted = ${is_deleted}`);
-        }
+//         if (!name) resError(400, "Falta el nombre del color");
+//         if (!hex_code_id) resError(400, "Falta el codigo hex del color");
+//         if (!slug) resError(400, "Falta el slug del color");
+//         if (!sku) resError(400, "Falta el sku del color");
 
-        if (fields.length === 0) {
-            resError(400, "Error en el cuerpo enviado");
-        }
+//         const updatedColor = await sql`
+//             UPDATE COLOR
+//             SET name = ${name as string},
+//                 slug = ${slug as string},
+//                 sku = ${sku as string}
+//             WHERE hex_code_id = ${hex_code_id}
+//             RETURNING *
+//         `;
 
-        const updatedColor = await sql`
-            UPDATE COLOR
-            SET ${sql.join(fields, sql`, `)}
-            WHERE id = ${id}
-            RETURNING *
-        `;
+//         res.json(updatedColor[0]);
 
-        res.json(updatedColor[0]);
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
 
-    } catch (error) {
-        return responseToError(error as Error, res);
-    }
-}
+// export async function patchColor(req: Request, res: Response) {
+//     try {
+//         validateBody(req.body, false);
+
+//         const { id } = req.params;
+//         const { name, slug, sku } = req.body;
+
+//         const hex_code_id = validateHexCode(id);
+
+//         const fields = [];
+
+//         if (name !== undefined) {
+//             fields.push(sql`name = ${name}`);
+//         }
+
+//         if (hex_code_id !== undefined) {
+//             fields.push(sql`hex_code_id = ${hex_code_id}`);
+//         }
+
+//         if (slug !== undefined) {
+//             fields.push(sql`slug = ${slug}`);
+//         }
+
+//         if (sku !== undefined) {
+//             fields.push(sql`sku = ${sku}`);
+//         }
+
+//         if (is_deleted !== undefined) {
+//             if (typeof is_deleted !== "boolean") {
+//                 resError(400, "is_deleted debe ser boolean");
+//             }
+//             fields.push(sql`is_deleted = ${is_deleted}`);
+//         }
+
+//         if (fields.length === 0) {
+//             resError(400, "Error en el cuerpo enviado");
+//         }
+
+//         const updatedColor = await sql`
+//             UPDATE COLOR
+//             SET ${sql.join(fields, sql`, `)}
+//             WHERE id = ${id}
+//             RETURNING *
+//         `;
+
+//         res.json(updatedColor[0]);
+
+//     } catch (error) {
+//         return responseToError(error as Error, res);
+//     }
+// }
