@@ -83,3 +83,23 @@ export function validateHexCode (hex_code: unknown): string | never {
   }
   return hex_code.startsWith("#") ? hex_code.substring(1) : hex_code;
 }
+
+export function validateId(id: unknown): string | never {
+  if (id == null) {
+    resError(400, "Id is required");
+  }
+
+  if (typeof id !== "string") {
+    resError(400, "Id must be a string");
+  }
+
+  // Regex UUID v4
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (!uuidRegex.test(id)) {
+    resError(400, "Invalid UUID format");
+  }
+
+  return id;
+}

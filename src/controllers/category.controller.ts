@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
+import { validateId } from "../utils/validations";
+
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -38,7 +40,7 @@ export async function getDeletedCategories(req: Request, res: Response) {
 ================================ */
 export async function getCategoryById(req: Request, res: Response) {
   try {
-    const id = req.params.id as string;
+    const id = validateId(req.params.id);
 
     const category = await sql`
       SELECT * FROM category WHERE id = ${id}
@@ -74,7 +76,7 @@ export async function createCategory(req: Request, res: Response) {
 ================================ */
 export async function updateCategory(req: Request, res: Response) {
   try {
-    const id = req.params.id as string;
+    const id = validateId(req.params.id);
     const { name, slug } = req.body;
 
     const updated = await sql`
@@ -95,7 +97,7 @@ export async function updateCategory(req: Request, res: Response) {
 ================================ */
 export async function softDeleteCategory(req: Request, res: Response) {
   try {
-    const id = req.params.id as string;
+    const id = validateId(req.params.id);
 
     await sql`
       UPDATE category
@@ -114,7 +116,7 @@ export async function softDeleteCategory(req: Request, res: Response) {
 ================================ */
 export async function restoreCategory(req: Request, res: Response) {
   try {
-   const id = req.params.id as string;
+    const id = validateId(req.params.id);
 
     await sql`
       UPDATE category
@@ -133,7 +135,7 @@ export async function restoreCategory(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteCategory(req: Request, res: Response) {
   try {
-   const id = req.params.id as string;
+    const id = validateId(req.params.id);
 
     await sql` 
       DELETE FROM category 
