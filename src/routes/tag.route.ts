@@ -1,19 +1,19 @@
 import { Router } from "express";
-import { getAllTag } from "../controllers/tag.controller";
+import { createTag, forceDeleteTag, getAllTag, getAllTagDeleteds, getTagById, restoreTag, softDeleteTag, updateTag } from "../controllers/tag.controller";
 
 const router = Router();
 
 router.get("/all", getAllTag);
-router.get("/all-deleted", );
-router.get("/:id", );
+router.get("/all-deleted", getAllTagDeleteds );
+router.get("/:id", getTagById );
 
-router.post("/", );
+router.post("/", createTag );
 
-router.put("/:id", );
+router.put("/:id",updateTag );
 
-router.delete("/force/:id", );
-router.delete("/soft/:id", );
+router.delete("/force/:id", forceDeleteTag );
+router.delete("/soft/:id", softDeleteTag );
 
-router.patch("/restore/:id", );
+router.patch("/restore/:id", restoreTag);
 
 export default router;
