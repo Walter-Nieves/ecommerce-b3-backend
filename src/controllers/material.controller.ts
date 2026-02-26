@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
+import { responseToError, validateId, resError } from "../utils/validations";
 
 export async function getAllMaterial(req: Request, res: Response) {
     try {
@@ -11,7 +12,7 @@ export async function getAllMaterial(req: Request, res: Response) {
 
         res.json(materials)
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener los materiales" })
+        return responseToError(error as Error, res);
     }
 }
 
@@ -25,17 +26,13 @@ export async function getAllMaterialDeleteds(req: Request, res: Response) {
 
         res.json(materials)
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener los materiales eliminados" })
+        return responseToError(error as Error, res);
     }
 }
 
 export async function getMaterialById(req: Request, res: Response) {
     try {
-        const id = Number(req.params.id)
-
-        if (!id) {
-            return res.status(400).json({ error: "ID inválido" })
-        }
+        const id = validateId(req.params.id)
 
         const material = await sql`
       SELECT * FROM material
@@ -44,12 +41,12 @@ export async function getMaterialById(req: Request, res: Response) {
     `
 
         if (material.length === 0) {
-            return res.status(404).json({ error: "Material no encontrado" })
+            resError(404, "Material no encontrado")
         }
 
         res.json(material[0])
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener el material" })
+        return responseToError(error as Error, res);
     }
 }
 
@@ -58,7 +55,7 @@ export async function createMaterial(req: Request, res: Response) {
         const { name, slug, sku } = req.body
 
         if (!name || !slug || !sku) {
-            return res.status(400).json({ error: "name, slug y sku son obligatorios" })
+            resError(400, "Name, Slug y Sku son obligatiorios")
         }
 
         const newMaterial = await sql`
@@ -69,13 +66,13 @@ export async function createMaterial(req: Request, res: Response) {
 
         res.status(201).json(newMaterial[0])
     } catch (error) {
-        res.status(500).json({ error: "Error al crear el material" })
+        return responseToError(error as Error, res);
     }
 }
 
 export async function updateMaterial(req: Request, res: Response ) {
     try {
-        const id = Number(req.params.id)
+        const id = validateId(req.params.id)
         const { name, slug, sku } = req.body
 
         if (!name || !slug || !sku || !id) {
@@ -92,22 +89,18 @@ export async function updateMaterial(req: Request, res: Response ) {
     `
 
         if (updatedMaterial.length === 0) {
-            return res.status(404).json({ error: "Material no encontrado" })
+            resError(404, "Material no encontrado")
         }
 
         res.json(updatedMaterial[0])
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar el material" })
+        return responseToError(error as Error, res);
     }
 }
 
 export async function softDeleteMaterial(req: Request, res: Response) {
     try {
-        const id = Number(req.params.id)
-
-        if (!id) {
-            return res.status(400).json({ error: "ID inválido" })
-        }
+        const id = validateId(req.params.id)
 
         const deletedMaterial = await sql`
       UPDATE material
@@ -117,22 +110,18 @@ export async function softDeleteMaterial(req: Request, res: Response) {
     `
 
         if (deletedMaterial.length === 0) {
-            return res.status(404).json({ error: "Material no encontrado" })
+            resError(404, "Material no encontrado")
         }
 
         res.json({ message: "Material eliminado correctamente" })
     } catch (error) {
-        res.status(500).json({ error: "Error al eliminar el material" })
+        return responseToError(error as Error, res);
     }
 }
 
 export async function forceDeleteMaterial( req: Request, res: Response) {
     try {
-        const id = Number(req.params.id)
-
-        if (!id) {
-            return res.status(400).json({ error: "ID inválido" })
-        }
+        const id = validateId(req.params.id)
 
         const deletedMaterial = await sql`
       DELETE FROM material
@@ -141,22 +130,18 @@ export async function forceDeleteMaterial( req: Request, res: Response) {
     `
 
         if (deletedMaterial.length === 0) {
-            return res.status(404).json({ error: "Material no encontrado" })
+            resError(404, "Material no encontrado")
         }
 
         res.json({ message: "Material eliminado permanentemente" })
     } catch (error) {
-        res.status(500).json({ error: "Error al eliminar permanentemente el material" })
+        return responseToError(error as Error, res);
     }
 }
 
 export async function restoreMaterial(req: Request, res: Response) {
     try {
-        const id = Number(req.params.id)
-
-        if (!id) {
-            return res.status(400).json({ error: "ID inválido" })
-        }
+        const id = validateId(req.params.id)
 
         const restoredMaterial = await sql`
       UPDATE material
@@ -166,11 +151,11 @@ export async function restoreMaterial(req: Request, res: Response) {
     `
 
         if (restoredMaterial.length === 0) {
-            return res.status(404).json({ error: "Material no encontrado" })
+            resError(404, "Material no encontrado")
         }
 
         res.json({ message: "Material restaurado correctamente" })
     } catch (error) {
-        res.status(500).json({ error: "Error al restaurar el material" })
+        return responseToError(error as Error, res);
     }
 }
