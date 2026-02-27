@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
-import { validateId } from "../utils/validations";
-
+import { validateId, responseToError } from "../utils/validations";
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -14,8 +13,8 @@ export async function getAllCategories(req: Request, res: Response) {
       ORDER BY name
     `;
     res.json(categories);
-  } catch {
-    res.status(500).json({ error: "Error al obtener categorías" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -30,8 +29,8 @@ export async function getDeletedCategories(req: Request, res: Response) {
       ORDER BY name
     `;
     res.json(categories);
-  } catch {
-    res.status(500).json({ error: "Error al obtener categorías eliminadas" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -47,8 +46,8 @@ export async function getCategoryById(req: Request, res: Response) {
     `;
 
     res.json(category[0]);
-  } catch {
-    res.status(500).json({ error: "Error al obtener categoría" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -66,8 +65,8 @@ export async function createCategory(req: Request, res: Response) {
     `;
 
     res.status(201).json(newCategory[0]);
-  } catch {
-    res.status(500).json({ error: "Error al crear categoría" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -87,8 +86,8 @@ export async function updateCategory(req: Request, res: Response) {
     `;
 
     res.json(updated[0]);
-  } catch {
-    res.status(500).json({ error: "Error al actualizar categoría" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -106,8 +105,8 @@ export async function softDeleteCategory(req: Request, res: Response) {
     `;
 
     res.json({ message: "Categoría eliminada" });
-  } catch {
-    res.status(500).json({ error: "Error al eliminar categoría" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -125,8 +124,8 @@ export async function restoreCategory(req: Request, res: Response) {
     `;
 
     res.json({ message: "Categoría restaurada" });
-  } catch {
-    res.status(500).json({ error: "Error al restaurar categoría" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -143,7 +142,7 @@ export async function forceDeleteCategory(req: Request, res: Response) {
     `;
 
     res.json({ message: "Categoría eliminada permanentemente" });
-  } catch {
-    res.status(500).json({ error: "Error al eliminar permanentemente" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }

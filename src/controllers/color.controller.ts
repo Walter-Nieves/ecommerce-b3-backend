@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
-import { resError, responseToError, validateBody, validateHexCode, validateId } from "../utils/validations";
+import {
+  resError,
+  responseToError,
+  validateBody,
+  validateHexCode,
+  validateId,
+} from "../utils/validations";
 
 export async function getAllColor(req: Request, res: Response) {
   try {
@@ -11,7 +17,6 @@ export async function getAllColor(req: Request, res: Response) {
         `;
 
     res.json(colors);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -26,7 +31,6 @@ export async function getAllDeletedColor(req: Request, res: Response) {
         `;
 
     res.json(colors);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -42,7 +46,6 @@ export async function getColorByHexId(req: Request, res: Response) {
       `;
 
     res.json(colors);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -67,7 +70,6 @@ export async function postColor(req: Request, res: Response) {
         `;
 
     res.status(201).json(newColor[0]);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -82,8 +84,7 @@ export async function softDeleteColor(req: Request, res: Response) {
           WHERE id = ${id}
       `;
 
-    res.status(204).send();
-
+    res.json({ message: "Color eliminado correctamente" });
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -96,15 +97,17 @@ export async function forceDeleteColor(req: Request, res: Response) {
       DELETE FROM COLOR
       WHERE id = ${id}
       RETURNING *
-    `
+    `;
 
     if (deletedMaterial.length === 0) {
-      return res.status(404).json({ error: "Color no encontrado" })
+      return res.status(404).json({ error: "Color no encontrado" });
     }
 
-    res.json({ message: "Color eliminado permanentemente" })
+    res.json({ message: "Color eliminado permanentemente" });
   } catch (error) {
-    res.status(500).json({ error: "Error al eliminar permanentemente el color" })
+    res
+      .status(500)
+      .json({ error: "Error al eliminar permanentemente el color" });
   }
 }
 
@@ -118,8 +121,7 @@ export async function restoreColor(req: Request, res: Response) {
             WHERE id = ${id}
         `;
 
-    res.status(204).send();
-
+    res.json({ message: "Color restaurado correctamente" });
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -149,7 +151,6 @@ export async function putColor(req: Request, res: Response) {
         `;
 
     res.json(updatedColor[0]);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }

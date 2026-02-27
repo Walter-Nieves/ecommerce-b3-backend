@@ -4,6 +4,8 @@ import express, { json } from "express";
 import tag from "./routes/tag.route";
 import clasp from "./routes/clasp.route";
 import category from "./routes/category.route";
+import material from "./routes/material.route";
+import color from "./routes/color.route";
 
 dotenv.config();
 
@@ -16,11 +18,13 @@ app.use(
     origin: process.env.FRONT_DOMAIN,
     credentials: true,
   }),
-);        
+);
 
 app.use("/api/tag", tag);
 app.use("/api/clasp", clasp);
-app.use("/api/category", category)
+app.use("/api/category", category);
+app.use("/api/material", material);
+app.use("/api/color", color);
 
 const PORT = Number(process.env.PORT ?? 3000);
 

@@ -4,7 +4,6 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import uuid from "uuid";
 import { Role } from "../types/enums";
 
-
 dotenv.config();
 
 const SECRET: string = process.env.JWT_SECRET as string;
@@ -16,11 +15,14 @@ export function resError(code: number, message: string): never {
 export function responseToError(error: Error, res: Response): Response {
   console.error(error);
   if (error.message.startsWith("{")) {
-    const { code, message }: {
+    const {
+      code,
+      message,
+    }: {
       code: number;
       message: string;
-    } = JSON.parse(error.message)
-    return res.status(code).json({message})
+    } = JSON.parse(error.message);
+    return res.status(code).json({ message });
   }
   return res.status(500).json({ message: "Internal Server Error" });
 }
@@ -34,7 +36,10 @@ export function validateToken(token: string): JwtPayload | never {
   }
 }
 
-export function validateBody (body: unknown, wouldBeArray: boolean): void | never {
+export function validateBody(
+  body: unknown,
+  wouldBeArray: boolean,
+): void | never {
   if (body == null) {
     resError(400, "Request body is required");
   }
@@ -49,7 +54,10 @@ export function validateBody (body: unknown, wouldBeArray: boolean): void | neve
   }
 }
 
-export function validateRole (role: unknown, expectedRole: Role[]): Role | never {
+export function validateRole(
+  role: unknown,
+  expectedRole: Role[],
+): Role | never {
   if (role == null) {
     resError(400, "Role is required");
   }
@@ -62,7 +70,7 @@ export function validateRole (role: unknown, expectedRole: Role[]): Role | never
   return role as Role;
 }
 
-export function validateDate (date: unknown, isFuture: boolean): string | never {
+export function validateDate(date: unknown, isFuture: boolean): string | never {
   if (date == null) {
     resError(400, "Date is required");
   }
@@ -78,11 +86,11 @@ export function validateDate (date: unknown, isFuture: boolean): string | never 
   return date;
 }
 
-export function validateHexCode (hex_code: unknown): string | never {
+export function validateHexCode(hex_code: unknown): string | never {
   if (hex_code == null) {
     resError(400, "Hex code is required");
   }
-  if (typeof hex_code !== "string" || !/^#?[0-9A-Fa-f]{6}$/.test(hex_code)) { 
+  if (typeof hex_code !== "string" || !/^#?[0-9A-Fa-f]{6}$/.test(hex_code)) {
     resError(400, "Invalid hex code format");
   }
   return hex_code.startsWith("#") ? hex_code.substring(1) : hex_code;
@@ -98,11 +106,142 @@ export function validateId(id: unknown): string | never {
   }
 
   // Valid UUID v4
-  const uuidV4Valid = uuid.validate(id)
+  const uuidV4Valid = uuid.validate(id);
 
   if (!uuidV4Valid) {
     resError(400, "Invalid UUID format");
   }
 
   return id;
+}
+
+export function sanitizeInput(input: string): string {
+  return input
+    .trim()
+    .replace(/<[^>]*>?/gm, "") // elimina etiquetas HTML
+    .replace(/\s+/g, " ") // elimina doble espacio
+    .normalize("NFC"); //mantiene acentos correctamente
+}
+
+export function validateName(name: unknown): string | never {
+  if (name == null) {
+    resError(400, "Name is required");
+  }
+
+  if (typeof name !== "string") {
+    resError(400, "Name must be a string");
+  }
+
+  const trimmedName = sanitizeInput(name);
+
+  if (trimmedName.length < 2) {
+    resError(400, "Name must be at least 2 characters long");
+  }
+
+  if (trimmedName.length > 20) {
+    resError(400, "Name cannot exceed 20 characters");
+  }
+
+  // los nombres si tienen caracteres especiales
+
+  if (!/^[\p{L}\p{N}\s\-\(\)\.,&]+$/u.test(trimmedName)) {
+    resError(400, "Name contains invalid characters");
+  }
+
+  return trimmedName;
+}
+
+export function validateSlug(slug: unknown, esIndividual: boolean): string | never {
+  if (slug == null) {
+    resError(400, "Slug is required");
+  }
+
+  if (typeof slug !== "string") {
+    resError(400, "Slug must be a string");
+  }
+
+  const normalizedSlug = slug
+    .trim()
+    .toLowerCase()
+    .normalize("NFD") // elimina acentos
+    .replace(/[\u0300-\u036f]/g, "") // elimina los acentos separados
+    .replace(/[^a-z0-9\s-]/g, "") // elimina caracteres raros
+    .replace(/\s+/g, "-") // espacios a "-""
+    .replace(/-+/g, "-") // evita mas de un "-" seguido
+    .replace(/^-|-$/g, ""); // quita - al inicio o final
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedSlug)) {
+    resError(400, "Invalid slug format");
+  }
+  if (normalizedSlug.length === 0) {
+  resError(400, "Slug cannot be empty after normalization");
+  }
+  if (esIndividual) {
+    if (normalizedSlug.length < 2) {
+      resError(400, "Slug must be at least 2 characters long");
+    }
+    if (normalizedSlug.length > 20) {
+      resError(400, "Slug cannot exceed 20 characters");
+    }
+  } else {
+    if (normalizedSlug.length < 30) {
+      resError(400, "Slug must be at least 30 characters long");
+    }
+    if (normalizedSlug.length > 100) {
+      resError(400, "Slug cannot exceed 100 characters");
+    }
+  }
+
+  return normalizedSlug;
+}
+
+export function validateSku(sku: unknown, esIndividual: boolean): string | never {
+  if (sku == null) {
+    resError(400, "SKU is required");
+  }
+
+  if (typeof sku !== "string") {
+    resError(400, "SKU must be a string");
+  }
+
+  let trimmedSku: string;
+
+  if (esIndividual) {
+    trimmedSku = sku
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+  } else {
+    trimmedSku = sku
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/\s+/g, "-") // espacio a "-""
+      .replace(/-+/g, "-") // evita -- dobles
+      .replace(/^-|-$/g, ""); // quita - al inicio o final
+  }
+
+  if (esIndividual) {
+    if (trimmedSku.length < 1) {
+      resError(400, "SKU must be at least 1 characters long");
+    }
+    if (trimmedSku.length > 3) {
+      resError(400, "SKU cannot exceed 3 characters");
+    }
+  } else {
+    if (trimmedSku.length < 10) {
+      resError(400, "SKU must be at least 10 characters long");
+    }
+    if (trimmedSku.length > 50) {
+      resError(400, "SKU cannot exceed 50 characters");
+    }
+  }
+  
+  if (!/^[A-Z0-9-]+$/.test(trimmedSku)) {
+    resError(400, "Invalid SKU format");
+  }
+  return trimmedSku;
 }

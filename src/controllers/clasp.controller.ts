@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
-import { validateId } from "../utils/validations";
+import { validateId, responseToError } from "../utils/validations";
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -13,8 +13,8 @@ export async function getAllClasps(req: Request, res: Response) {
       ORDER BY name
     `;
     res.json(Clasp);
-  } catch {
-    res.status(500).json({ error: "Error al obtener clasps" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -29,8 +29,8 @@ export async function getDeletedClasps(req: Request, res: Response) {
       ORDER BY name
     `;
     res.json(Clasp);
-  } catch {
-    res.status(500).json({ error: "Error al obtener Clasps eliminadas" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -39,15 +39,15 @@ export async function getDeletedClasps(req: Request, res: Response) {
 ================================ */
 export async function getClaspById(req: Request, res: Response) {
   try {
-   const id = validateId(req.params.id);
+    const id = validateId(req.params.id);
 
     const Clasp = await sql`
       SELECT * FROM clasp WHERE id = ${id}
     `;
 
     res.json(Clasp[0]);
-  } catch {
-    res.status(500).json({ error: "Error al obtener clasp" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -65,9 +65,8 @@ export async function createClasp(req: Request, res: Response) {
     `;
 
     res.status(201).json(newClasp[0]);
-  } catch(error) {
-      console.error(error);
-    res.status(500).json({ error });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -76,7 +75,7 @@ export async function createClasp(req: Request, res: Response) {
 ================================ */
 export async function updateClasp(req: Request, res: Response) {
   try {
-   const id = validateId(req.params.id);
+    const id = validateId(req.params.id);
     const { name, slug } = req.body;
 
     const updated = await sql`
@@ -87,8 +86,8 @@ export async function updateClasp(req: Request, res: Response) {
     `;
 
     res.json(updated[0]);
-  } catch {
-    res.status(500).json({ error: "Error al actualizar clasp" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -97,7 +96,7 @@ export async function updateClasp(req: Request, res: Response) {
 ================================ */
 export async function softDeleteClasp(req: Request, res: Response) {
   try {
-   const id = validateId(req.params.id);
+    const id = validateId(req.params.id);
 
     await sql`
       UPDATE clasp
@@ -106,8 +105,8 @@ export async function softDeleteClasp(req: Request, res: Response) {
     `;
 
     res.json({ message: "Clasp eliminada" });
-  } catch {
-    res.status(500).json({ error: "Error al eliminar clasp" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -125,8 +124,8 @@ export async function restoreClasp(req: Request, res: Response) {
     `;
 
     res.json({ message: "Clasp restaurada" });
-  } catch {
-    res.status(500).json({ error: "Error al restaurar clasp" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
 
@@ -135,7 +134,7 @@ export async function restoreClasp(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteClasp(req: Request, res: Response) {
   try {
-   const id = validateId(req.params.id);
+    const id = validateId(req.params.id);
 
     await sql`
       DELETE FROM clasp
@@ -143,7 +142,7 @@ export async function forceDeleteClasp(req: Request, res: Response) {
     `;
 
     res.json({ message: "Clasp eliminada permanentemente" });
-  } catch {
-    res.status(500).json({ error: "Error al eliminar clasp permanentemente" });
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
