@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import sql from "../db/supabase";
-import { validateId, responseToError } from "../utils/validations";
+import { validateId, responseToError, validateName, validateSlug } from "../utils/validations";
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -58,9 +58,12 @@ export async function createClasp(req: Request, res: Response) {
   try {
     const { name, slug } = req.body;
 
+    const sureName = validateName(name); 
+    const sureSlug = validateSlug(slug,true) 
+
     const newClasp = await sql`
       INSERT INTO clasp (name, slug)
-      VALUES (${name}, ${slug})
+      VALUES (${sureName}, ${sureSlug})
       RETURNING *
     `;
 
@@ -78,9 +81,12 @@ export async function updateClasp(req: Request, res: Response) {
     const id = validateId(req.params.id);
     const { name, slug } = req.body;
 
+    const sureName = validateName(name); 
+    const sureSlug = validateSlug(slug,true) 
+
     const updated = await sql`
       UPDATE clasp
-      SET name = ${name}, slug = ${slug}
+      SET name = ${sureName}, slug = ${sureSlug}
       WHERE id = ${id}
       RETURNING *
     `;
@@ -146,3 +152,4 @@ export async function forceDeleteClasp(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
+
