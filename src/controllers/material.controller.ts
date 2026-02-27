@@ -3,7 +3,7 @@ import sql from "../db/supabase";
 import {
   responseToError,
   validateId,
-  resError, validateName 
+  resError, validateName , validateSku, validateSlug
 }  from "../utils/validations";
 
 export async function getAllMaterial(req: Request, res: Response) {
@@ -56,11 +56,9 @@ export async function getMaterialById(req: Request, res: Response) {
 
 export async function createMaterial(req: Request, res: Response) {
   try {
-    const { name, slug, sku } = req.body;
-
-    if (!name || !slug || !sku) {
-      resError(400, "Name, Slug y Sku son obligatiorios");
-    }
+    const name = validateName(req.body.name);
+    const slug = validateSlug(req.body.slug, true);
+    const sku = validateSku(req.body.sku, true);
 
     const newMaterial = await sql`
       INSERT INTO material (name, slug, sku, is_deleted)
@@ -77,14 +75,9 @@ export async function createMaterial(req: Request, res: Response) {
 export async function updateMaterial(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
-    const { slug, sku } = req.body;
-        const name = validateName(req.body.name);
-
-    if (!name || !slug || !sku || !id) {
-      return res
-        .status(400)
-        .json({ error: "id, name, slug y sku son obligatorios" });
-    }
+    const name = validateName(req.body.name);
+    const slug = validateSlug(req.body.slug, true);
+    const sku = validateSku(req.body.sku, true);
 
     const updatedMaterial = await sql`
       UPDATE material
