@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
-import sql from "../db/supabase";
-import { responseToError, validateId, validateName, validateSlug } from "../utils/validations";
+import { sql } from "../db/supabase";
+import {
+  responseToError,
+  validateId,
+  validateName,
+  validateSlug,
+} from "../utils/validations";
+import { Category } from "../types/primitives";
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -56,14 +62,14 @@ export async function getCategoryById(req: Request, res: Response) {
 ================================ */
 export async function createCategory(req: Request, res: Response) {
   try {
-    const { name, slug } = req.body;  
-
-    const sureName = validateName(name); 
-    const sureSlug = validateSlug(slug,true) 
+    const category: Category = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+    };
 
     const newCategory = await sql`
       INSERT INTO category (name, slug)
-      VALUES (${sureName}, ${sureSlug})
+      VALUES (${category.name}, ${category.slug})
       RETURNING *
     `;
 
@@ -73,22 +79,6 @@ export async function createCategory(req: Request, res: Response) {
   }
 }
 
-//Esta opcion me quedo incluso como recomendada para no usar variables intermediarias, entonces tu me dices cual de las 
-//dos dejamos y porque sera la mejor opcion para lo que estamos haciendo
-// export async function createCategory(req: Request, res: Response) {
-//   try {
-//     const newCategory = await sql`
-//       INSERT INTO category (name, slug)
-//       VALUES (${validateName(req.body.name)}, ${validateSlug(req.body.slug, true)})
-//       RETURNING *
-//     `;
-
-//     res.status(201).json(newCategory[0]);
-//   } catch (error) {
-//     return responseToError(error as Error, res);
-//   }
-// }
-
 /* ===============================
    UPDATE
 ================================ */
@@ -96,14 +86,14 @@ export async function updateCategory(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
 
-    const { name, slug } = req.body;
-
-    const sureName = validateName(name); 
-    const sureSlug = validateSlug(slug,true) 
+    const category: Category = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+    };
 
     const updated = await sql`
       UPDATE category
-      SET name = ${sureName}, slug = ${sureSlug}
+      SET name = ${category.name}, slug = ${category.slug}
       WHERE id = ${id}
       RETURNING *
     `;

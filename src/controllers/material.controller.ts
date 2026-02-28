@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
-import sql from "../db/supabase";
+import { sql } from "../db/supabase";
 import {
   responseToError,
   validateId,
-  resError, validateName , validateSku, validateSlug
-}  from "../utils/validations";
+  resError,
+  validateName,
+  validateSku,
+  validateSlug,
+} from "../utils/validations";
+import { Material } from "../types/primitives";
 
 export async function getAllMaterial(req: Request, res: Response) {
   try {
@@ -56,13 +60,15 @@ export async function getMaterialById(req: Request, res: Response) {
 
 export async function createMaterial(req: Request, res: Response) {
   try {
-    const name = validateName(req.body.name);
-    const slug = validateSlug(req.body.slug, true);
-    const sku = validateSku(req.body.sku, true);
+    const material: Material = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+      sku: validateSku(req.body.sku, true),
+    };
 
     const newMaterial = await sql`
       INSERT INTO material (name, slug, sku, is_deleted)
-      VALUES (${name}, ${slug}, ${sku}, false)
+      VALUES (${material.name}, ${material.slug}, ${material.sku}, false)
       RETURNING *
     `;
 
@@ -75,15 +81,16 @@ export async function createMaterial(req: Request, res: Response) {
 export async function updateMaterial(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
-    const name = validateName(req.body.name);
-    const slug = validateSlug(req.body.slug, true);
-    const sku = validateSku(req.body.sku, true);
-
+    const material: Material = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+      sku: validateSku(req.body.sku, true),
+    };
     const updatedMaterial = await sql`
       UPDATE material
-      SET name = ${name},
-          slug = ${slug},
-          sku = ${sku}
+      SET name = ${material.name},
+          slug = ${material.slug},
+          sku = ${material.sku}
       WHERE id = ${id}
       RETURNING *
     `;

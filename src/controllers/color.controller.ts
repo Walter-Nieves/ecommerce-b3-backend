@@ -1,12 +1,16 @@
 import { Request, Response } from "express";
-import sql from "../db/supabase";
+import { sql } from "../db/supabase";
 import {
   resError,
   responseToError,
   validateBody,
   validateHexCode,
   validateId,
+  validateSku,
+  validateName,
+  validateSlug,
 } from "../utils/validations";
+import { Color } from "../types/primitives";
 
 export async function getAllColor(req: Request, res: Response) {
   try {
@@ -55,17 +59,16 @@ export async function postColor(req: Request, res: Response) {
   try {
     validateBody(req.body, false);
 
-    const { name, slug, sku } = req.body;
-
-    const hex_code = validateHexCode(req.body.hex_code);
-
-    if (!name) resError(400, "Falta el nombre del color");
-    if (!slug) resError(400, "Falta el slug del color");
-    if (!sku) resError(400, "Falta el sku del color");
+    const color: Color = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+      sku: validateSku(req.body.sku, true),
+      hex_code: validateHexCode(req.body.hex_code),
+    };
 
     const newColor = await sql`
             INSERT INTO COLOR (name, hex_code, slug, sku)
-            VALUES (${name}, ${hex_code}, ${slug}, ${sku})
+            VALUES (${color.name}, ${color.hex_code}, ${color.sku}, ${color.slug})
             RETURNING *
         `;
 
@@ -100,14 +103,12 @@ export async function forceDeleteColor(req: Request, res: Response) {
     `;
 
     if (deletedMaterial.length === 0) {
-      return res.status(404).json({ error: "Color no encontrado" });
+      resError(404, "Color not found");
     }
 
     res.json({ message: "Color eliminado permanentemente" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Error al eliminar permanentemente el color" });
+    return responseToError(error as Error, res);
   }
 }
 
@@ -132,20 +133,19 @@ export async function putColor(req: Request, res: Response) {
     validateBody(req.body, false);
 
     const id = validateId(req.params.id);
-    const { name, slug, sku } = req.body;
-
-    const hex_code = validateHexCode(req.body.hex_code);
-
-    if (!name) resError(400, "Falta el nombre del color");
-    if (!slug) resError(400, "Falta el slug del color");
-    if (!sku) resError(400, "Falta el sku del color");
+    const color: Color = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+      sku: validateSku(req.body.sku, true),
+      hex_code: validateHexCode(req.body.hex_code),
+    };
 
     const updatedColor = await sql`
             UPDATE COLOR
-            SET name = ${name as string},
-                slug = ${slug as string},
-                sku = ${sku as string},
-                hex_code = ${hex_code}
+            SET name = ${color.name},
+                slug = ${color.slug},
+                sku = ${color.sku},
+                hex_code = ${color.hex_code}
             WHERE id = ${id}
             RETURNING *
         `;

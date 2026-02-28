@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
-import sql from "../db/supabase";
-import { validateId, responseToError, validateName, validateSlug } from "../utils/validations";
-
+import { sql } from "../db/supabase";
+import {
+  validateId,
+  responseToError,
+  validateName,
+  validateSlug,
+} from "../utils/validations";
+import { Clasp } from "../types/primitives";
 /* ===============================
    GET ALL (no eliminadas)
 ================================ */
@@ -56,14 +61,13 @@ export async function getClaspById(req: Request, res: Response) {
 ================================ */
 export async function createClasp(req: Request, res: Response) {
   try {
-    const { name, slug } = req.body;
-
-    const sureName = validateName(name); 
-    const sureSlug = validateSlug(slug,true) 
-
+    const claps: Clasp = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+    };
     const newClasp = await sql`
       INSERT INTO clasp (name, slug)
-      VALUES (${sureName}, ${sureSlug})
+      VALUES (${claps.name}, ${claps.slug})
       RETURNING *
     `;
 
@@ -79,14 +83,14 @@ export async function createClasp(req: Request, res: Response) {
 export async function updateClasp(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
-    const { name, slug } = req.body;
 
-    const sureName = validateName(name); 
-    const sureSlug = validateSlug(slug,true) 
-
+    const claps: Clasp = {
+      name: validateName(req.body.name),
+      slug: validateSlug(req.body.slug, true),
+    };
     const updated = await sql`
       UPDATE clasp
-      SET name = ${sureName}, slug = ${sureSlug}
+      SET name = ${claps.name}, slug = ${claps.slug}
       WHERE id = ${id}
       RETURNING *
     `;
@@ -152,4 +156,3 @@ export async function forceDeleteClasp(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
-

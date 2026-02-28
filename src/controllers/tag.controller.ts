@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import sql from "../db/supabase";
+import {sql} from "../db/supabase";
 import {responseToError, validateId, validateName, resError} from "../utils/validations"
+import { Tag } from "../types/primitives";
 
 export async function getAllTag(req: Request, res: Response) {
   try {
@@ -51,11 +52,14 @@ export async function getTagById(req: Request, res: Response) {
 
 export async function createTag(req: Request, res: Response) {
   try {
-    const name  = validateName(req.body);
+
+    const tag: Tag = {
+      name: validateName(req.body.name) 
+    }
 
     const newTag = await sql`
       INSERT INTO tag (name, is_deleted)
-      VALUES (${name}, false)
+      VALUES (${tag.name}, false)
       RETURNING *
     `;
 
@@ -68,11 +72,12 @@ export async function createTag(req: Request, res: Response) {
 export async function updateTag(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id)
-    const name  = validateName(req.body);
-
+    const tag: Tag = {
+      name: validateName(req.body.name) 
+    }
     const updatedTag = await sql`
       UPDATE tag
-      SET name = ${name}
+      SET name = ${tag.name}
       WHERE id = ${id}
       RETURNING *
     `;
