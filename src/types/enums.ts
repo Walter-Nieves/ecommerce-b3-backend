@@ -23,3 +23,9 @@ export enum Role {
   Seller = "Seller",
   Admin = "Admin",
 }
+
+export enum BucketRoutes {
+  UserImages = "user_images",
+  BrandImages = "brand_images",
+  ProductImages = "product_images"
+}

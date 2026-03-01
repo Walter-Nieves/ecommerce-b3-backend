@@ -245,3 +245,36 @@ export function validateSku(sku: unknown, esIndividual: boolean): string | never
   }
   return trimmedSku;
 }
+
+export function validateUrl(url: unknown): void | never {
+  if (url == null) {
+    resError(400, "URL is required");
+  }
+  if (typeof url !== "string") {
+    resError(400, "URL must be a string");
+  }
+  try {
+    new URL(url);
+  } catch (error) {
+    resError(400, "Invalid URL format");
+  }
+}
+
+export function validateNumber(number: unknown, type: "int" | "float", from: number, to: number): number | never {
+  if (number == null) {
+    resError(400, "Number is required");
+  }
+  if (typeof number !== "number") {
+    resError(400, "Value must be a number");
+  }
+  if (type === "int" && !Number.isInteger(number)) {
+    resError(400, "Value must be an integer");
+  }
+  if (type === "float" && Number.isInteger(number)) {
+    resError(400, "Value must be a float");
+  }
+  if (number < from || number > to) {
+    resError(400, `Number must be between ${from} and ${to}`);
+  }
+  return number;
+}
