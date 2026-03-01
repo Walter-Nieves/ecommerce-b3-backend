@@ -166,7 +166,7 @@ interface User {
   email: string;
   password_hash: string;
   phone: string;
-  photo_url?: string;
+  photo_url?: string | null;
   is_active: boolean;
   email_verified: boolean;
   role: Role;
