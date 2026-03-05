@@ -6,13 +6,16 @@ import clasp from "./routes/clasp.route";
 import category from "./routes/category.route";
 import material from "./routes/material.route";
 import color from "./routes/color.route";
+import brand from "./routes/brand.route";
 import user from "./routes/user.route";
+import morgan from "morgan";
 
 dotenv.config();
 
 const app = express();
 
 app.use(json());
+app.use(morgan("dev"));
 
 app.use(
   cors({
@@ -26,6 +29,7 @@ app.use("/api/clasp", clasp);
 app.use("/api/category", category);
 app.use("/api/material", material);
 app.use("/api/color", color);
+app.use("/api/brand", brand);
 app.use("/api/user", user);
 
 const PORT = Number(process.env.PORT ?? 3000);
