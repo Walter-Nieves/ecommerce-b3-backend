@@ -1,39 +1,40 @@
+
 import { Router } from "express";
 import {
   getAllUsers,
   getDeletedUsers,
   getUserById,
-  //createUser,
-  //updateUser,
-  //softDeleteUser,
   getDeletedUserById,
-  //restoreUser,
-  //forceDeleteUser,
   getUserByEmail,
   getDeletedUserByEmail,
+  createUser,
+  updateUser,
+  softDeleteUser,
+  forceDeleteUser,
+  restoreUser
 } from "../controllers/user.controller";
-import { createSecureServer } from "http2";
 
 const router = Router();
 
-// 📌 Obtener todos
+// 📌 GET
 router.get("/all", getAllUsers);
 router.get("/all-deleted", getDeletedUsers);
-
-// 📌 Buscar por ID
 router.get("/id/:id", getUserById);
 router.get("/id/deleted/:id", getDeletedUserById);
-
-// 📌 Buscar por EMAIL
 router.get("/email/:email", getUserByEmail);
 router.get("/email/deleted/:email", getDeletedUserByEmail);
 
-// router.post("/", createUser);
-// router.put("/:id", updateUser);
+// 📌 CREATE
+router.post("/", createUser);
 
-// router.delete("/force/:id", forceDeleteUser);
-// router.delete("/soft/:id", softDeleteUser);
+// 📌 UPDATE
+router.put("/:id", updateUser);
 
-// router.patch("/restore/:id", restoreUser);
+// 📌 DELETE
+router.delete("/soft/:id", softDeleteUser);
+router.delete("/force/:id", forceDeleteUser);
+
+// 📌 RESTORE
+router.patch("/restore/:id", restoreUser);
 
 export default router;
