@@ -3,6 +3,7 @@ import { Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import uuid from "uuid";
 import { Role } from "../types/enums";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -51,6 +52,15 @@ export function validateBody(
   }
   if (!wouldBeArray && Array.isArray(body)) {
     resError(400, "Request body should be an object, not an array");
+  }
+}
+
+export function validateRoleForActions(
+  role: unknown,
+  expectedRole: Role[],
+): void | never {
+  if (!expectedRole.includes(role as Role)) {
+    resError(400, "Role not allowed for this action");
   }
 }
 
@@ -151,7 +161,10 @@ export function validateName(name: unknown): string | never {
   return trimmedName;
 }
 
-export function validateSlug(slug: unknown, esIndividual: boolean): string | never {
+export function validateSlug(
+  slug: unknown,
+  esIndividual: boolean,
+): string | never {
   if (slug == null) {
     resError(400, "Slug is required");
   }
@@ -174,7 +187,7 @@ export function validateSlug(slug: unknown, esIndividual: boolean): string | nev
     resError(400, "Invalid slug format");
   }
   if (normalizedSlug.length === 0) {
-  resError(400, "Slug cannot be empty after normalization");
+    resError(400, "Slug cannot be empty after normalization");
   }
   if (esIndividual) {
     if (normalizedSlug.length < 2) {
@@ -195,7 +208,10 @@ export function validateSlug(slug: unknown, esIndividual: boolean): string | nev
   return normalizedSlug;
 }
 
-export function validateSku(sku: unknown, esIndividual: boolean): string | never {
+export function validateSku(
+  sku: unknown,
+  esIndividual: boolean,
+): string | never {
   if (sku == null) {
     resError(400, "SKU is required");
   }
@@ -212,7 +228,7 @@ export function validateSku(sku: unknown, esIndividual: boolean): string | never
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "")
+      .replace(/[^A-Z0-9]/g, "");
   } else {
     trimmedSku = sku
       .trim()
@@ -239,14 +255,14 @@ export function validateSku(sku: unknown, esIndividual: boolean): string | never
       resError(400, "SKU cannot exceed 50 characters");
     }
   }
-  
+
   if (!/^[A-Z0-9-]+$/.test(trimmedSku)) {
     resError(400, "Invalid SKU format");
   }
   return trimmedSku;
 }
 
-export function validateUrl(url: unknown): void | never {
+export function validateUrl(url: unknown): string | never {
   if (url == null) {
     resError(400, "URL is required");
   }
@@ -255,12 +271,18 @@ export function validateUrl(url: unknown): void | never {
   }
   try {
     new URL(url);
+    return url;
   } catch (error) {
     resError(400, "Invalid URL format");
   }
 }
 
-export function validateNumber(number: unknown, type: "int" | "float", from: number, to: number): number | never {
+export function validateNumber(
+  number: unknown,
+  type: "int" | "float",
+  from: number,
+  to: number,
+): number | never {
   if (number == null) {
     resError(400, "Number is required");
   }
@@ -277,4 +299,160 @@ export function validateNumber(number: unknown, type: "int" | "float", from: num
     resError(400, `Number must be between ${from} and ${to}`);
   }
   return number;
+}
+
+export function validateEmail(email: unknown): string | never {
+  if (email == null) {
+    resError(400, "Email is required");
+  }
+  if (typeof email !== "string") {
+    resError(400, "Email must be a string");
+  }
+
+  const trimmedEmail = email.trim();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmedEmail)) {
+    resError(400, "Invalid email format");
+  }
+  return trimmedEmail.toLowerCase();
+}
+
+export function validateSimpleName(
+  name: unknown,
+  isCapilatize: boolean,
+): string | never {
+  if (name == null) {
+    resError(400, "Name is required");
+  }
+
+  if (typeof name !== "string") {
+    throw new Error("Name must be a string");
+  }
+
+  let trimmed = name.trim();
+
+  if (trimmed.length === 0) {
+    throw new Error("Name cannot be empty");
+  }
+
+  if (trimmed.length < 2 || trimmed.length > 50) {
+    throw new Error("Name must be between 2 and 50 characters");
+  }
+
+  // Solo letras (incluye tildes) y espacios
+  const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+  if (!nameRegex.test(trimmed)) {
+    throw new Error("Name can only contain letters and spaces");
+  }
+
+  // ❌ Evita repeticiones tipo "aaaaa"
+  if (/^(.)\1+$/i.test(trimmed.replace(/\s+/g, ""))) {
+    throw new Error("Invalid name format");
+  }
+
+  // Elimina espacios múltiples
+  trimmed = trimmed.replace(/\s+/g, " ");
+
+  // Formatea: Primera letra de cada palabra en mayúscula
+  let formatted = trimmed.toLowerCase();
+
+  if (isCapilatize) {
+    formatted = formatted
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  return formatted;
+}
+
+export function validatePassword(password: unknown): string | never {
+  if (password == null) {
+    resError(400, "Password is required");
+  }
+
+  if (typeof password !== "string") {
+    resError(400, "Password must be a string");
+  }
+
+  const trimmed = sanitizeInput(password.trim());
+
+  if (trimmed.length === 0) {
+    resError(400, "Password cannot be empty");
+  }
+
+  if (trimmed.length < 8 || trimmed.length > 128) {
+    resError(400, "Password must be between 8 and 128 characters");
+  }
+
+  return trimmed;
+}
+
+export function validatePhone(phone: unknown): string | never {
+  if (phone == null) {
+    resError(400, "Phone is required");
+  }
+
+  if (typeof phone !== "string") {
+    resError(400, "Phone must be a string");
+  }
+
+  const trimmedPhone = phone.trim();
+
+  if (trimmedPhone.length === 0) {
+    resError(400, "Phone cannot be empty");
+  }
+
+  //numeros y 10
+  const phoneRegex = /^[0-9]{10}$/;
+
+  if (!phoneRegex.test(trimmedPhone)) {
+    resError(400, "Phone must contain exactly 10 digits");
+  }
+
+  return trimmedPhone;
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  return hashedPassword;
+}
+
+export async function validatePasswordHash(
+  password: unknown,
+  current_password_hash: string,
+): Promise<void | never> {
+  if (password == null) {
+    resError(400, "Password hash is required");
+  }
+
+  if (typeof password !== "string") {
+    resError(400, "Password hash must be a string");
+  }
+
+  const trimmedPassword = password.trim();
+  if (trimmedPassword.length === 0) {
+    resError(400, "Password hash cannot be empty");
+  }
+
+  const isMatch = await bcrypt.compare(trimmedPassword, current_password_hash);
+
+  if (!isMatch) {
+    resError(400, "Invalid password");
+  }
+}
+
+export async function validateBoolean(
+  value: unknown,
+): Promise<boolean | never> {
+  if (value == null) {
+    resError(400, "Boolean value is required");
+  }
+  if (typeof value !== "boolean") {
+    resError(400, "Value must be a boolean");
+  }
+  return value;
 }

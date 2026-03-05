@@ -1,8 +1,23 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
 import { User } from "../types/entities";
-import { resError, responseToError } from "../utils/validations";
+import {
+  hashPassword,
+  resError,
+  responseToError,
+  validateEmail,
+  validateId,
+  validatePassword,
+  validatePhone,
+  validateSimpleName,
+  validateUrl,
+  validateBody,
+  validateRole,
+  validateRoleForActions,
+  validatePasswordHash,
+} from "../utils/validations";
 import { Role } from "../types/enums";
+import { UserPayload } from "../types/primitives";
 
 type SafeUser = Omit<User, "password_hash">;
 
@@ -11,35 +26,45 @@ const sanitizeUser = (user: User): SafeUser => {
   return rest;
 };
 
-interface CreateUserBody {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password_hash: string;
-  phone: string;
-  photo_url?: string | null;
-  role: Role;
-}
-
-interface UpdateUserBody {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  photo_url?: string | null;
-  role: Role;
-  is_active: boolean;
-}
-
-//todos excepto los eliminados 
-export const getAllUsers = async (
+export const getUserMe = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
+    validateBody(res.locals.user, true);
+
+    const currentUser = res.locals.user as UserPayload;
+
+    const id = validateId(currentUser.sub);
+
+    const [user] = await sql<User[]>`
+      SELECT *
+      FROM user
+      WHERE id = ${id}
+      AND is_deleted = false
+      LIMIT 1
+    `;
+
+    if (!user) {
+      resError(404, "User not found");
+    }
+
+    return res.status(200).json(sanitizeUser(user));
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+};
+
+//todos excepto los eliminados
+export const getAllUsers = async (
+  _: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE is_deleted = false
       ORDER BY created_at DESC
     `;
@@ -52,15 +77,16 @@ export const getAllUsers = async (
   }
 };
 
-//todos los eliminados 
+//todos los eliminados
 export const getDeletedUsers = async (
-  req: Request,
-  res: Response
+  _: Request,
+  res: Response,
 ): Promise<Response> => {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE is_deleted = true
       ORDER BY created_at DESC
     `;
@@ -76,21 +102,22 @@ export const getDeletedUsers = async (
 //obtener activos por id
 export const getUserById = async (
   req: Request<{ id: string }>,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const { id } = req.params;
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
     `;
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      resError(404, "User not found");
     }
 
     return res.status(200).json(sanitizeUser(user));
@@ -99,24 +126,25 @@ export const getUserById = async (
   }
 };
 
- //obtener eliminados por id
+//obtener eliminados por id
 export const getDeletedUserById = async (
-  req: Request<{ id: string }>,
-  res: Response<SafeUser | { message: string }>
+  req: Request,
+  res: Response<SafeUser | { message: string }>,
 ): Promise<Response> => {
   try {
-    const { id } = req.params;
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const id = validateId(req.params.id);
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE id = ${id}
       AND is_deleted = true
       LIMIT 1
     `;
 
     if (!user) {
-      return res.status(404).json({ message: "Deleted user not found" });
+      resError(404, "Deleted user not found");
     }
 
     return res.status(200).json(sanitizeUser(user));
@@ -127,30 +155,26 @@ export const getDeletedUserById = async (
 
 //obtener activos por email
 export const getUserByEmail = async (
-  req: Request<{ email: string }>,
+  req: Request,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { email } = req.params;
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const email = validateEmail(req.params.email);
 
-    const users = await sql<User[]>`
+    const [user] = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE email = ${email}
       AND is_deleted = false
       LIMIT 1
     `;
 
-    if (users.length === 0) {
-      resError(404, "User not found");
+    if (!user) {
+      resError(404, "Deleted user not found");
     }
 
-    const filtered_users: Omit<User, "password_hash">[] = users.map((user) => {
-      const { password_hash, ...rest } = user;
-      return rest;
-    });
-
-    return res.status(200).json(filtered_users[0]);
+    return res.status(200).json(sanitizeUser(user));
   } catch (error: any) {
     return responseToError(error as Error, res);
   }
@@ -158,42 +182,56 @@ export const getUserByEmail = async (
 
 //obtener eliminados por email
 export const getDeletedUserByEmail = async (
-  req: Request<{ email: string }>,
+  req: Request,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { email } = req.params;
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const email = validateEmail(req.params.email);
 
-    const users = await sql<User[]>`
+    const [user] = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE email = ${email}
       AND is_deleted = true
       LIMIT 1
     `;
 
-    if (users.length === 0) {
-      resError(404, "User not found");
+    if (!user) {
+      resError(404, "Deleted user not found");
     }
 
-    const filtered_users: Omit<User, "password_hash">[] = users.map((user) => {
-      const { password_hash, ...rest } = user;
-      return rest;
-    });
-
-    return res.status(200).json(filtered_users[0]);
+    return res.status(200).json(sanitizeUser(user));
   } catch (error: any) {
     return responseToError(error as Error, res);
   }
 };
 
-//crear usuario 
+//crear usuario
 export const createUser = async (
-  req: Request<{}, {}, CreateUserBody>,
-  res: Response<SafeUser | { message: string }>
+  req: Request,
+  res: Response,
 ): Promise<Response> => {
   try {
-    const {
+    validateBody(req.body, false);
+
+    const first_name = validateSimpleName(req.body.first_name, true);
+    const last_name = validateSimpleName(req.body.last_name, true);
+    const email = validateEmail(req.body.email);
+    const password = validatePassword(req.body.password);
+    const password_hash = await hashPassword(password);
+    const phone = validatePhone(req.body.phone);
+    const photo_url = validateUrl(req.body.imageUrl);
+
+    let role: Role;
+
+    if (res.locals.user.role === Role.Admin) {
+      role = validateRole(req.body.role, [Role.Admin, Role.Seller, Role.Buyer]);
+    } else {
+      role = Role.Buyer; // Si el usuario no es admin, se le asigna el rol de buyer por defecto
+    }
+
+    const user: User = {
       first_name,
       last_name,
       email,
@@ -201,38 +239,32 @@ export const createUser = async (
       phone,
       photo_url,
       role,
-    } = req.body;
+    };
 
     const [newUser] = await sql<User[]>`
-      INSERT INTO users (
+      INSERT INTO user (
         first_name,
         last_name,
         email,
         password_hash,
         phone,
         photo_url,
-        role,
-        is_active,
-        email_verified,
-        is_deleted
+        role
       )
       VALUES (
-        ${first_name},
-        ${last_name},
-        ${email},
-        ${password_hash},
-        ${phone},
-        ${photo_url ?? null},
-        ${role},
-        true,
-        false,
-        false
+        ${user.first_name},
+        ${user.last_name},
+        ${user.email},
+        ${user.password_hash},
+        ${user.phone},
+        ${user.photo_url},
+        ${user.role}
       )
       RETURNING *
     `;
 
     if (!newUser) {
-      return res.status(500).json({ message: "User creation failed" });
+      resError(500, "User creation failed");
     }
 
     return res.status(201).json(sanitizeUser(newUser));
@@ -241,69 +273,93 @@ export const createUser = async (
   }
 };
 
-//actualizar usuario 
+//actualizar usuario
 export const updateUser = async (
-  req: Request<{ id: string }, {}, UpdateUserBody>,
-  res: Response<SafeUser | { message: string }>
+  req: Request,
+  res: Response,
 ): Promise<Response> => {
   try {
-    const { id } = req.params;
-
-    const {
-      first_name,
-      last_name,
-      email,
-      phone,
-      photo_url,
-      role,
-      is_active,
-    } = req.body;
+    validateBody(req.body, false);
+    const id = validateId(req.params.id);
 
     const [existingUser] = await sql<User[]>`
       SELECT *
-      FROM users
+      FROM user
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
     `;
 
     if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+      resError(404, "User not found");
     }
 
-    // hasChanges bien tipado y limpio
-    const normalizedPhotoUrl = photo_url ?? null;
+    const first_name = validateSimpleName(req.body.first_name, true);
+    const last_name = validateSimpleName(req.body.last_name, true);
+    const email = validateEmail(req.body.email);
+    const phone = validatePhone(req.body.phone);
 
+    const [emailIsBusy] = await sql<
+      User[]
+    >`SELECT FROM user WHERE email = ${email} AND id != ${id}`;
+
+    if (emailIsBusy) {
+      resError(400, "Email is already in use by another user");
+    }
+
+    const [phoneIsBusy] = await sql<
+      User[]
+    >`SELECT FROM user WHERE phone = ${phone} AND id != ${id}`;
+
+    if (phoneIsBusy) {
+      resError(400, "Phone is already in use by another user");
+    }
+
+    let role: Role;
+
+    if (res.locals.user.role === Role.Admin) {
+      role = validateRole(req.body.role, [Role.Admin, Role.Seller, Role.Buyer]);
+    } else {
+      role = Role.Buyer; // Si el usuario no es admin, se le asigna el rol de buyer por defecto
+    }
+
+    //detectar cambios
     const hasChanges =
       existingUser.first_name !== first_name ||
       existingUser.last_name !== last_name ||
       existingUser.email !== email ||
       existingUser.phone !== phone ||
-      existingUser.photo_url !== normalizedPhotoUrl ||
-      existingUser.is_active !== is_active ||
       existingUser.role !== role;
 
     if (!hasChanges) {
-      return res.status(400).json({ message: "No changes detected" });
+      return res.status(200).json(sanitizeUser(existingUser));
     }
 
+    const user: User = {
+      first_name,
+      last_name,
+      email,
+      phone,
+      role,
+      password_hash: existingUser.password_hash,
+      photo_url: existingUser.photo_url,
+    };
+
     const [updatedUser] = await sql<User[]>`
-      UPDATE users
+      UPDATE user
       SET
-        first_name = ${first_name},
-        last_name = ${last_name},
-        email = ${email},
-        phone = ${phone},
-        photo_url = ${normalizedPhotoUrl},
-        role = ${role},
-        is_active = ${is_active},
+        first_name = ${user.first_name},
+        last_name = ${user.last_name},
+        email = ${user.email},
+        phone = ${user.phone},
+        role = ${user.role},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
     `;
 
     if (!updatedUser) {
-      return res.status(500).json({ message: "User update failed" });
+      resError(500, "User update failed");
     }
 
     return res.status(200).json(sanitizeUser(updatedUser));
@@ -315,13 +371,14 @@ export const updateUser = async (
 //soft delete
 export const softDeleteUser = async (
   req: Request<{ id: string }>,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
-    const { id } = req.params;
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    const id = validateId(req.params.id);
 
     await sql`
-      UPDATE users
+      UPDATE user
       SET
         is_deleted = true,
         deleted_at = NOW(),
@@ -335,16 +392,17 @@ export const softDeleteUser = async (
   }
 };
 
-//restaurar usuario 
+//restaurar usuario
 export const restoreUser = async (
   req: Request<{ id: string }>,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
-    const { id } = req.params;
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    const id = validateId(req.params.id);
 
     await sql`
-      UPDATE users
+      UPDATE user
       SET
         is_deleted = false,
         deleted_at = NULL,
@@ -358,21 +416,110 @@ export const restoreUser = async (
   }
 };
 
-
 //force delete(borrado real)
 export const forceDeleteUser = async (
   req: Request<{ id: string }>,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
-    const { id } = req.params;
-
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    const id = validateId(req.params.id);
     await sql`
-      DELETE FROM users
+      DELETE FROM user
       WHERE id = ${id}
     `;
 
     return res.status(200).json({ message: "User permanently deleted" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+};
+
+export const updatePasswordUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    validateBody(req.body, false);
+
+    const id = validateId(req.params.id);
+
+    const [user] = await sql<User[]>`
+      SELECT *
+      FROM user
+      WHERE id = ${id}
+      AND is_deleted = false
+      LIMIT 1
+    `;
+
+    if (!user) {
+      resError(404, "User not found");
+    }
+
+    const { current_password, new_password } = req.body;
+
+    const validatedCurrentPassword = validatePassword(current_password);
+    const validatedNewPassword = validatePassword(new_password);
+
+    await validatePasswordHash(validatedCurrentPassword, user.password_hash);
+
+    //hashear nueva contraseña
+    const newPasswordHash = await hashPassword(validatedNewPassword);
+
+    await sql`
+      UPDATE user
+      SET
+        password_hash = ${newPasswordHash},
+        updated_at = NOW()
+      WHERE id = ${id}
+    `;
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+};
+
+export const updatePhotoUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    validateBody(req.body, false);
+    const id = validateId(req.params.id);
+
+    // Verificamos que el usuario exista
+    const [existingUser] = await sql<User[]>`
+      SELECT *
+      FROM users
+      WHERE id = ${id}
+      AND is_deleted = false
+      LIMIT 1
+    `;
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Validamos URL (puedes usar tu validateUrl si ya lo tienes)
+    const photo_url = validateUrl(req.body.imageUrl);
+
+    const [updatedUser] = await sql<User[]>`
+      UPDATE user
+      SET
+        photo_url = ${photo_url},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (!updatedUser) {
+      resError(500, "Photo update failed");
+    }
+
+    return res.status(200).json({ message: "Photo updated successfully" });
   } catch (error) {
     return responseToError(error as Error, res);
   }

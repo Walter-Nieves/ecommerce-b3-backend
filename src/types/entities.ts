@@ -160,20 +160,20 @@ interface PaymentSeguimientoActual {
 }
 
 interface User {
-  id: string;
+  id?: string;
   first_name: string;
   last_name: string;
   email: string;
   password_hash: string;
   phone: string;
-  photo_url?: string | null;
-  is_active: boolean;
-  email_verified: boolean;
+  photo_url: string;
+  is_active?: boolean;
+  email_verified?: boolean;
   role: Role;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at: Date | null;
-  is_deleted: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+  deleted_at?: Date | null;
+  is_deleted?: boolean;
 }
 
 interface Address {

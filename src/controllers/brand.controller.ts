@@ -8,6 +8,7 @@ import {
   validateSku,
   validateSlug,
   validateBody,
+  validateUrl,
 } from "../utils/validations";
 import { Brand } from "../types/primitives";
 
@@ -64,7 +65,7 @@ export async function createBrand(req: Request, res: Response) {
       name: validateName(req.body.name),
       slug: validateSlug(req.body.slug, true),
       sku: validateSku(req.body.sku, true),
-      logo_url: req.body.imageUrl
+      logo_url: validateUrl(req.body.imageUrl),
     };
 
     const newBrand = await sql`
@@ -87,7 +88,7 @@ export async function updateBrand(req: Request, res: Response) {
       name: validateName(req.body.name),
       slug: validateSlug(req.body.slug, true),
       sku: validateSku(req.body.sku, true),
-      logo_url: req.body.imageUrl
+      logo_url: validateUrl(req.body.imageUrl),
     };
     const updatedBrand = await sql`
       UPDATE brand

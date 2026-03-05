@@ -1,47 +1,35 @@
-import { Response } from 'express'
-import dotenv from 'dotenv'
-import { resError, responseToError, validateToken } from "../utils/validations"
-import jwt from 'jsonwebtoken'
-import { Role } from "../types/enums"
-import { middleware } from "./types"
+import { Response } from "express";
+import dotenv from "dotenv";
+import { resError, responseToError, validateToken } from "../utils/validations";
+import { Role } from "../types/enums";
+import { middleware } from "./types";
 
-dotenv.config()
-const SECRET = process.env.JWT_SECRET as string
+dotenv.config();
 
-export const authVerify: middleware<Response | undefined> = (req, res, next) => {
-  try {
-    const { accessToken } = req.cookies
-
-    if (accessToken == null) {
-      return resError(401, 'Token not provided or sesion expired')
-    }
-
-    const payload = validateToken(accessToken)
-    res.locals.usuario = payload
-
-    next()
-  } catch (error) {
-    return responseToError(error as Error, res)
-  }
-}
-
-export const authRole: middleware<Response | undefined> = (req, res, next) => {
-  try {
-    const { accessToken } = req.cookies
-
-    if (accessToken == null) {
-      res.locals.usuario = { rol: Role.Buyer }
-      next()
-      return
-    }
-
+export function authVerify(
+  needLogin: boolean,
+): middleware<Response | undefined> {
+  return (req, res, next) => {
     try {
-      res.locals.usuario = jwt.verify(accessToken, SECRET)
-      next()
+      const { accessToken } = req.cookies;
+
+      if (accessToken == null) {
+        if (needLogin) {
+          return resError(401, "Token not provided or sesion expired");
+        } else {
+          const defaultRole = Role.Buyer;
+          res.locals.user = { role: defaultRole };
+          next();
+          return;
+        }
+      }
+
+      const payload = validateToken(accessToken);
+      res.locals.user = payload;
+
+      next();
     } catch (error) {
-      return resError(401, 'Token invalid or expired')
+      return responseToError(error as Error, res);
     }
-  } catch (error) {
-    return responseToError(error as Error, res)
-  }
+  };
 }

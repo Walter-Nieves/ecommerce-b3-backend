@@ -1,3 +1,5 @@
+import { Role } from "./enums";
+
 type rating = 1 | 2 | 3 | 4 | 5;
 
 type stock_state = "in_stock" | "out_of_stock" | "pre_order";
@@ -102,4 +104,21 @@ interface Category {
   is_deleted?: boolean;
 }
 
-export type { rating, stock_state, PaymentOrderStatus, PaymentProviderType, Tag, Material, Color, Clasp, Brand, Category };
+interface UserPayload {
+  sub: string;
+  role: Role;
+}
+
+export type {
+  rating,
+  stock_state,
+  PaymentOrderStatus,
+  PaymentProviderType,
+  Tag,
+  Material,
+  Color,
+  Clasp,
+  Brand,
+  Category,
+  UserPayload,
+};
