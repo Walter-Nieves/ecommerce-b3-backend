@@ -1,19 +1,19 @@
 import { Router } from "express";
 import {
-  getAllUsers,
-  getDeletedUsers,
-  getUserById,
-  getDeletedUserById,
-  getUserByEmail,
-  getDeletedUserByEmail,
   createUser,
-  updateUser,
-  softDeleteUser,
   forceDeleteUser,
-  restoreUser,
+  getAllUsers,
+  getDeletedUserByEmail,
+  getDeletedUserById,
+  getDeletedUsers,
+  getUserByEmail,
+  getUserById,
   getUserMe,
+  restoreUser,
+  softDeleteUser,
   updatePasswordUser,
   updatePhotoUser,
+  updateUser,
 } from "../controllers/user.controller";
 import { authVerify } from "../middlewares/auth.middleware";
 import { uploadImage } from "../middlewares/file.middleware";

@@ -60,6 +60,7 @@ export const getAllUsers = async (
   _: Request,
   res: Response,
 ): Promise<Response> => {
+  console.log(res.locals.user)
   try {
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
