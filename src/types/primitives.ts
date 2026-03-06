@@ -87,7 +87,7 @@ interface Brand {
   name: string;
   slug: string;
   sku: string;
-  logo_url: string;
+  logo_url?: string | null;
   is_deleted?: boolean;
 }
 

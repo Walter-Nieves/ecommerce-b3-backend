@@ -16,6 +16,8 @@ import {
   updatePhotoUser,
 } from "../controllers/user.controller";
 import { authVerify } from "../middlewares/auth.middleware";
+import { uploadImage } from "../middlewares/file.middleware";
+import { BucketRoutes } from "../types/enums";
 
 const router = Router();
 
@@ -29,10 +31,15 @@ router.get("/email/:email", getUserByEmail);
 router.get("/me", authVerify(true), getUserMe);
 
 // 📌 CREATE
-router.post("/", authVerify(false), createUser);
+router.post(
+  "/",
+  authVerify(false),
+  uploadImage(BucketRoutes.UserImages),
+  createUser,
+); //✅
 
 // 📌 UPDATE
-router.put("/:id", authVerify(true), updateUser);
+router.put("/:id", authVerify(true), updateUser); //✅
 
 // 📌 DELETE
 router.delete("/soft/:id", authVerify(true), softDeleteUser);
@@ -40,7 +47,12 @@ router.delete("/force/:id", authVerify(true), forceDeleteUser);
 
 // 📌 PATCH
 router.patch("/restore/:id", authVerify(true), restoreUser);
-router.patch("/photo/:id", authVerify(true), updatePhotoUser);
+router.patch(
+  "/photo/:id",
+  authVerify(true),
+  uploadImage(BucketRoutes.UserImages),
+  updatePhotoUser,
+); //✅
 router.patch("/password/:id", authVerify(true), updatePasswordUser);
 
 export default router;

@@ -39,7 +39,7 @@ export const getUserMe = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
@@ -64,7 +64,7 @@ export const getAllUsers = async (
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE is_deleted = false
       ORDER BY created_at DESC
     `;
@@ -86,7 +86,7 @@ export const getDeletedUsers = async (
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE is_deleted = true
       ORDER BY created_at DESC
     `;
@@ -110,7 +110,7 @@ export const getUserById = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
@@ -137,7 +137,7 @@ export const getDeletedUserById = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE id = ${id}
       AND is_deleted = true
       LIMIT 1
@@ -164,7 +164,7 @@ export const getUserByEmail = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE email = ${email}
       AND is_deleted = false
       LIMIT 1
@@ -191,7 +191,7 @@ export const getDeletedUserByEmail = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE email = ${email}
       AND is_deleted = true
       LIMIT 1
@@ -215,8 +215,12 @@ export const createUser = async (
   try {
     validateBody(req.body, false);
 
-    const first_name = validateSimpleName(req.body.first_name, true);
-    const last_name = validateSimpleName(req.body.last_name, true);
+    const first_name = validateSimpleName(
+      req.body.first_name,
+      true,
+      "First name",
+    );
+    const last_name = validateSimpleName(req.body.last_name, true, "Last name");
     const email = validateEmail(req.body.email);
     const password = validatePassword(req.body.password);
     const password_hash = await hashPassword(password);
@@ -241,15 +245,19 @@ export const createUser = async (
       role,
     };
 
+    console.log("antes de");
+
     const [newUser] = await sql<User[]>`
-      INSERT INTO user (
+      INSERT INTO users (
         first_name,
         last_name,
         email,
         password_hash,
         phone,
         photo_url,
-        role
+        role,
+        created_at,
+        updated_at
       )
       VALUES (
         ${user.first_name},
@@ -257,11 +265,14 @@ export const createUser = async (
         ${user.email},
         ${user.password_hash},
         ${user.phone},
-        ${user.photo_url},
-        ${user.role}
+        ${user.photo_url ?? null},
+        ${user.role},
+        NOW(),
+        NOW()
       )
       RETURNING *
     `;
+    console.log("despues de");
 
     if (!newUser) {
       resError(500, "User creation failed");
@@ -279,12 +290,11 @@ export const updateUser = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    validateBody(req.body, false);
     const id = validateId(req.params.id);
 
     const [existingUser] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
@@ -294,14 +304,19 @@ export const updateUser = async (
       resError(404, "User not found");
     }
 
-    const first_name = validateSimpleName(req.body.first_name, true);
-    const last_name = validateSimpleName(req.body.last_name, true);
+    validateBody(req.body, false);
+    const first_name = validateSimpleName(
+      req.body.first_name,
+      true,
+      "First name",
+    );
+    const last_name = validateSimpleName(req.body.last_name, true, "Last name");
     const email = validateEmail(req.body.email);
     const phone = validatePhone(req.body.phone);
 
     const [emailIsBusy] = await sql<
       User[]
-    >`SELECT FROM user WHERE email = ${email} AND id != ${id}`;
+    >`SELECT FROM users WHERE email = ${email} AND id != ${id}`;
 
     if (emailIsBusy) {
       resError(400, "Email is already in use by another user");
@@ -309,7 +324,7 @@ export const updateUser = async (
 
     const [phoneIsBusy] = await sql<
       User[]
-    >`SELECT FROM user WHERE phone = ${phone} AND id != ${id}`;
+    >`SELECT FROM users WHERE phone = ${phone} AND id != ${id}`;
 
     if (phoneIsBusy) {
       resError(400, "Phone is already in use by another user");
@@ -335,18 +350,16 @@ export const updateUser = async (
       return res.status(200).json(sanitizeUser(existingUser));
     }
 
-    const user: User = {
+    const user: Omit<User, "password_hash" | "photo_url"> = {
       first_name,
       last_name,
       email,
       phone,
       role,
-      password_hash: existingUser.password_hash,
-      photo_url: existingUser.photo_url,
     };
 
     const [updatedUser] = await sql<User[]>`
-      UPDATE user
+      UPDATE users
       SET
         first_name = ${user.first_name},
         last_name = ${user.last_name},
@@ -378,7 +391,7 @@ export const softDeleteUser = async (
     const id = validateId(req.params.id);
 
     await sql`
-      UPDATE user
+      UPDATE users
       SET
         is_deleted = true,
         deleted_at = NOW(),
@@ -402,7 +415,7 @@ export const restoreUser = async (
     const id = validateId(req.params.id);
 
     await sql`
-      UPDATE user
+      UPDATE users
       SET
         is_deleted = false,
         deleted_at = NULL,
@@ -425,7 +438,7 @@ export const forceDeleteUser = async (
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const id = validateId(req.params.id);
     await sql`
-      DELETE FROM user
+      DELETE FROM users
       WHERE id = ${id}
     `;
 
@@ -446,7 +459,7 @@ export const updatePasswordUser = async (
 
     const [user] = await sql<User[]>`
       SELECT *
-      FROM user
+      FROM users
       WHERE id = ${id}
       AND is_deleted = false
       LIMIT 1
@@ -467,7 +480,7 @@ export const updatePasswordUser = async (
     const newPasswordHash = await hashPassword(validatedNewPassword);
 
     await sql`
-      UPDATE user
+      UPDATE users
       SET
         password_hash = ${newPasswordHash},
         updated_at = NOW()
@@ -507,7 +520,7 @@ export const updatePhotoUser = async (
     const photo_url = validateUrl(req.body.imageUrl);
 
     const [updatedUser] = await sql<User[]>`
-      UPDATE user
+      UPDATE users
       SET
         photo_url = ${photo_url},
         updated_at = NOW()

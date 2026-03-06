@@ -70,7 +70,7 @@ export async function createBrand(req: Request, res: Response) {
 
     const newBrand = await sql`
       INSERT INTO brand (name, slug, sku, logo_url)
-      VALUES (${brand.name}, ${brand.slug}, ${brand.sku}, ${brand.logo_url})
+      VALUES (${brand.name}, ${brand.slug}, ${brand.sku}, ${brand.logo_url ?? null})
       RETURNING *
     `;
 
@@ -95,7 +95,7 @@ export async function updateBrand(req: Request, res: Response) {
       SET name = ${brand.name},
           slug = ${brand.slug},
           sku = ${brand.sku},
-          logo_url = ${brand.logo_url}
+          logo_url = ${brand.logo_url ?? null}
       WHERE id = ${id}
       RETURNING *
     `;

@@ -262,9 +262,9 @@ export function validateSku(
   return trimmedSku;
 }
 
-export function validateUrl(url: unknown): string | never {
+export function validateUrl(url: unknown): string | null | never {
   if (url == null) {
-    resError(400, "URL is required");
+    return null;
   }
   if (typeof url !== "string") {
     resError(400, "URL must be a string");
@@ -321,35 +321,36 @@ export function validateEmail(email: unknown): string | never {
 export function validateSimpleName(
   name: unknown,
   isCapilatize: boolean,
+  fieldName: string,
 ): string | never {
   if (name == null) {
-    resError(400, "Name is required");
+    resError(400, fieldName + " is required");
   }
 
   if (typeof name !== "string") {
-    throw new Error("Name must be a string");
+    throw new Error(fieldName + " must be a string");
   }
 
   let trimmed = name.trim();
 
   if (trimmed.length === 0) {
-    throw new Error("Name cannot be empty");
+    throw new Error(fieldName + " cannot be empty");
   }
 
   if (trimmed.length < 2 || trimmed.length > 50) {
-    throw new Error("Name must be between 2 and 50 characters");
+    throw new Error(fieldName + " must be between 2 and 50 characters");
   }
 
   // Solo letras (incluye tildes) y espacios
   const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
 
   if (!nameRegex.test(trimmed)) {
-    throw new Error("Name can only contain letters and spaces");
+    throw new Error(fieldName + " can only contain letters and spaces");
   }
 
   // ❌ Evita repeticiones tipo "aaaaa"
   if (/^(.)\1+$/i.test(trimmed.replace(/\s+/g, ""))) {
-    throw new Error("Invalid name format");
+    throw new Error("Invalid " + fieldName + "format");
   }
 
   // Elimina espacios múltiples

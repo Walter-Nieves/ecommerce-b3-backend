@@ -20,7 +20,7 @@ export function uploadImage(route: BucketRoutes) {
         // Verifica que se haya subido un archivo
         const file = req.file;
         if (file == null) {
-          validateUrl(req.body.imageUrl);
+          req.body.imageUrl = validateUrl(req.body.imageUrl);
           return next();
         }
         // Obtener ruta completa del archivo y subirlo a Supabase Storage
