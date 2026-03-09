@@ -31,7 +31,7 @@ export const getUserMe = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    validateBody(res.locals.user, true);
+    validateBody(res.locals.user, false);
 
     const currentUser = res.locals.user as UserPayload;
 
@@ -60,7 +60,6 @@ export const getAllUsers = async (
   _: Request,
   res: Response,
 ): Promise<Response> => {
-  console.log(res.locals.user)
   try {
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const users = await sql<User[]>`
@@ -291,6 +290,11 @@ export const updateUser = async (
   res: Response,
 ): Promise<Response> => {
   try {
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
     const id = validateId(req.params.id);
 
     const [existingUser] = await sql<User[]>`
@@ -369,6 +373,7 @@ export const updateUser = async (
         role = ${user.role},
         updated_at = NOW()
       WHERE id = ${id}
+      AND is_deleted = false
       RETURNING *
     `;
 
@@ -391,14 +396,23 @@ export const softDeleteUser = async (
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const id = validateId(req.params.id);
 
-    await sql`
+    if (res.locals.user.sub === id) {
+      resError(400, "You cannot delete your own account");
+    }
+
+    const result = await sql`
       UPDATE users
       SET
         is_deleted = true,
         deleted_at = NOW(),
         updated_at = NOW()
       WHERE id = ${id}
+      AND is_deleted = false
     `;
+
+    if (result.count === 0) {
+      resError(404, "User not found");
+    }
 
     return res.status(200).json({ message: "User soft deleted" });
   } catch (error) {
@@ -415,14 +429,19 @@ export const restoreUser = async (
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const id = validateId(req.params.id);
 
-    await sql`
+    const result = await sql`
       UPDATE users
       SET
         is_deleted = false,
         deleted_at = NULL,
         updated_at = NOW()
       WHERE id = ${id}
+      AND is_deleted = true
     `;
+
+    if (result.count === 0) {
+      resError(404, "Deleted user not found");
+    }
 
     return res.status(200).json({ message: "User restored" });
   } catch (error) {
@@ -438,10 +457,19 @@ export const forceDeleteUser = async (
   try {
     validateRoleForActions(res.locals.user.role, [Role.Admin]);
     const id = validateId(req.params.id);
-    await sql`
+
+    if (res.locals.user.sub === id) {
+      resError(400, "You cannot delete your own account");
+    }
+
+    const result = await sql`
       DELETE FROM users
       WHERE id = ${id}
     `;
+
+    if (result.count === 0) {
+      resError(404, "User not found");
+    }
 
     return res.status(200).json({ message: "User permanently deleted" });
   } catch (error) {

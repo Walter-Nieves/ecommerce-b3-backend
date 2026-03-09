@@ -30,7 +30,9 @@ export function responseToError(error: Error, res: Response): Response {
 
 export function validateToken(token: string): JwtPayload | never {
   try {
+    console.log("Token: ", token);
     const payload = jwt.verify(token, SECRET) as JwtPayload;
+    console.log("Payload: ", payload);
     return payload;
   } catch (error) {
     resError(401, "Invalid or expired token");
@@ -386,6 +388,19 @@ export function validatePassword(password: unknown): string | never {
 
   if (trimmed.length < 8 || trimmed.length > 128) {
     resError(400, "Password must be between 8 and 128 characters");
+  }
+
+  if (!/[A-Z]/.test(trimmed)) {
+    resError(400, "Password must contain at least one uppercase letter");
+  }
+  if (!/[a-z]/.test(trimmed)) {
+    resError(400, "Password must contain at least one lowercase letter");
+  }
+  if (!/[0-9]/.test(trimmed)) {
+    resError(400, "Password must contain at least one number");
+  }
+  if (!/[!@#$%^&*(),.?":{}_\-\+\=~|]/.test(trimmed)) {
+    resError(400, "Password must contain at least one special character");
   }
 
   return trimmed;

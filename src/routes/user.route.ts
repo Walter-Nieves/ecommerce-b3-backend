@@ -22,13 +22,13 @@ import { BucketRoutes } from "../types/enums";
 const router = Router();
 
 // 📌 GET
-router.get("/all", getAllUsers);
-router.get("/all-deleted", getDeletedUsers);
-router.get("/id/deleted/:id", getDeletedUserById);
-router.get("/id/:id", getUserById);
-router.get("/email/deleted/:email", getDeletedUserByEmail);
-router.get("/email/:email", getUserByEmail);
-router.get("/me", authVerify(true), getUserMe);
+router.get("/all", authVerify(true), getAllUsers); //✅
+router.get("/all-deleted", authVerify(true), getDeletedUsers); //✅
+router.get("/id/deleted/:id", authVerify(true), getDeletedUserById); //✅
+router.get("/id/:id", authVerify(true), getUserById); //✅
+router.get("/email/deleted/:email", authVerify(true), getDeletedUserByEmail); //✅
+router.get("/email/:email", authVerify(true), getUserByEmail); //✅
+router.get("/me", authVerify(true), getUserMe); //✅
 
 // 📌 CREATE
 router.post(
@@ -42,11 +42,11 @@ router.post(
 router.put("/:id", authVerify(true), updateUser); //✅
 
 // 📌 DELETE
-router.delete("/soft/:id", authVerify(true), softDeleteUser);
-router.delete("/force/:id", authVerify(true), forceDeleteUser);
+router.delete("/soft/:id", authVerify(true), softDeleteUser); //✅
+router.delete("/force/:id", authVerify(true), forceDeleteUser); //✅
 
 // 📌 PATCH
-router.patch("/restore/:id", authVerify(true), restoreUser);
+router.patch("/restore/:id", authVerify(true), restoreUser); //✅
 router.patch(
   "/photo/:id",
   authVerify(true),
