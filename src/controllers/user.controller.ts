@@ -567,11 +567,19 @@ export const updatePhotoUser = async (
   }
 };
 
-// export const postCheckEmail = async (
-//   req: Request,
-//   res: Response,
-// ): Promise<Response> => {
-//   try {
-//     validateBody(req.body, false);
-//     const email = validateEmail(req.body.email);
-//     const [user] = await sql<User[]>
+export const postCheckEmail = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    validateBody(req.body, false);
+    const email = validateEmail(req.body.email);
+    const [result] = await sql<
+      [{ exists: boolean }]
+    >`SELECT EXISTS(SELECT 1 FROM users WHERE email = ${email} AND is_deleted = false) AS exists`;
+
+    return res.status(200).json({ exists: result.exists });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+};
