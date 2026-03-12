@@ -37,6 +37,7 @@ router.post(
   uploadImage(BucketRoutes.UserImages),
   createUser,
 ); //✅
+// ;router.post("/check-email", postCheckEmail);
 
 // 📌 UPDATE
 router.put("/:id", authVerify(true), updateUser); //✅

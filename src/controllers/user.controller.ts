@@ -566,3 +566,12 @@ export const updatePhotoUser = async (
     return responseToError(error as Error, res);
   }
 };
+
+// export const postCheckEmail = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<Response> => {
+//   try {
+//     validateBody(req.body, false);
+//     const email = validateEmail(req.body.email);
+//     const [user] = await sql<User[]>
