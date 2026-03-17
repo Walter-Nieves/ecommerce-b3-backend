@@ -53,6 +53,5 @@ router.patch(
   uploadImage(BucketRoutes.UserImages),
   updatePhotoUser,
 ); //✅
-router.patch("/password/:id", authVerify(true), updatePasswordUser);
-
+router.patch("/password/:id", authVerify(true), updatePasswordUser); //✅
 export default router;
