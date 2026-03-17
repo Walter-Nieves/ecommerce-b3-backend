@@ -24,6 +24,7 @@ router.get("/waterproofness/all", (_, res) => {
     const values = waterproofness_values.map((value) => {
       return {
         name: value,
+        slug: value.toLocaleLowerCase(),
       };
     });
     return res.status(200).json(values);

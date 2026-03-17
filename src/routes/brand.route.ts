@@ -2,6 +2,7 @@ import { Router} from "express"
 import { getAllImages, uploadImage } from "../middlewares/file.middleware";
 import { BucketRoutes } from "../types/enums";
 import { createBrand, forceDeleteBrand, getAllBrands, getAllDeletedBrands, getBrandById, restoreBrand, softDeleteBrand, updateBrand } from "../controllers/brand.controller";
+import { authVerify } from "../middlewares/auth.middleware";
 
 const router = Router()
 
@@ -10,7 +11,7 @@ router.get("/all-deleted", getAllDeletedBrands );
 router.get("/images", getAllImages(BucketRoutes.BrandImages))
 router.get("/:id", getBrandById);
 
-router.post("/", uploadImage(BucketRoutes.BrandImages), createBrand);
+router.post("/", authVerify(true), uploadImage(BucketRoutes.BrandImages), createBrand);
 
 router.put("/:id", uploadImage(BucketRoutes.BrandImages),updateBrand);
 
