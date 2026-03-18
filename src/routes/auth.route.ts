@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { login, logout, refresh } from "../controllers/auth.controller";
+import { checkCode, login, logout, refresh, sendCode } from "../controllers/auth.controller";
 
 const authRoute = Router();
 
 authRoute.post("/login", login);
+
+authRoute.post("/send-check-code", sendCode);
+
+authRoute.post("/check-code", checkCode);
 
 authRoute.post("/refresh", refresh);
 

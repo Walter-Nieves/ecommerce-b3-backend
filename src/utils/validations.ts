@@ -472,3 +472,31 @@ export async function validateBoolean(
   }
   return value;
 }
+
+export function validateCode(code: unknown): string {
+  if (code == null) {
+    resError(400, "Code is required");
+  }
+
+  if (typeof code !== "string") {
+    resError(400, "Code must be a string");
+  }
+
+  const trimmedCode = code.trim();
+
+  if (trimmedCode.length === 0) {
+    resError(400, "Code cannot be empty");
+  }
+
+  // ✅ Validar longitud exacta
+  if (trimmedCode.length !== 6) {
+    resError(400, "Code must be exactly 6 digits");
+  }
+
+  // ✅ Validar que solo tenga números
+  if (!/^\d{6}$/.test(trimmedCode)) {
+    resError(400, "Code must contain only numbers");
+  }
+
+  return trimmedCode;
+}
