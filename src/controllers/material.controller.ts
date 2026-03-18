@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
+import { Role } from "../types/enums";
+import { Material } from "../types/primitives";
 import {
+  resError,
   responseToError,
   validateId,
-  resError,
   validateName,
+  validateRoleForActions,
   validateSku,
   validateSlug,
 } from "../utils/validations";
-import { Material } from "../types/primitives";
 
 export async function getAllMaterial(req: Request, res: Response) {
   try {
@@ -60,6 +62,7 @@ export async function getMaterialById(req: Request, res: Response) {
 
 export async function createMaterial(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const material: Material = {
       name: validateName(req.body.name),
       slug: validateSlug(req.body.slug, true),
@@ -80,6 +83,7 @@ export async function createMaterial(req: Request, res: Response) {
 
 export async function updateMaterial(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
     const material: Material = {
       name: validateName(req.body.name),
@@ -107,6 +111,7 @@ export async function updateMaterial(req: Request, res: Response) {
 
 export async function softDeleteMaterial(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const deletedMaterial = await sql`
@@ -128,6 +133,7 @@ export async function softDeleteMaterial(req: Request, res: Response) {
 
 export async function forceDeleteMaterial(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const deletedMaterial = await sql`
@@ -148,6 +154,7 @@ export async function forceDeleteMaterial(req: Request, res: Response) {
 
 export async function restoreMaterial(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const restoredMaterial = await sql`

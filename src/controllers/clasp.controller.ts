@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
+import { Role } from "../types/enums";
+import { Clasp } from "../types/primitives";
 import {
-  validateId,
   responseToError,
+  validateId,
   validateName,
+  validateRoleForActions,
   validateSlug,
 } from "../utils/validations";
-import { Clasp } from "../types/primitives";
 /* ===============================
    GET ALL (no eliminadas)
 ================================ */
@@ -61,6 +63,7 @@ export async function getClaspById(req: Request, res: Response) {
 ================================ */
 export async function createClasp(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const claps: Clasp = {
       name: validateName(req.body.name),
       slug: validateSlug(req.body.slug, true),
@@ -82,6 +85,7 @@ export async function createClasp(req: Request, res: Response) {
 ================================ */
 export async function updateClasp(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const claps: Clasp = {
@@ -106,6 +110,7 @@ export async function updateClasp(req: Request, res: Response) {
 ================================ */
 export async function softDeleteClasp(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
@@ -125,6 +130,7 @@ export async function softDeleteClasp(req: Request, res: Response) {
 ================================ */
 export async function restoreClasp(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
@@ -144,6 +150,7 @@ export async function restoreClasp(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteClasp(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
