@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
+import { Role } from "../types/enums";
+import { Category } from "../types/primitives";
 import {
   responseToError,
   validateId,
   validateName,
+  validateRoleForActions,
   validateSlug,
 } from "../utils/validations";
-import { Category } from "../types/primitives";
 
 /* ===============================
    GET ALL (no eliminadas)
@@ -62,6 +64,7 @@ export async function getCategoryById(req: Request, res: Response) {
 ================================ */
 export async function createCategory(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const category: Category = {
       name: validateName(req.body.name),
       slug: validateSlug(req.body.slug, true),
@@ -84,6 +87,7 @@ export async function createCategory(req: Request, res: Response) {
 ================================ */
 export async function updateCategory(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const category: Category = {
@@ -109,6 +113,7 @@ export async function updateCategory(req: Request, res: Response) {
 ================================ */
 export async function softDeleteCategory(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
@@ -128,6 +133,7 @@ export async function softDeleteCategory(req: Request, res: Response) {
 ================================ */
 export async function restoreCategory(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
@@ -147,6 +153,7 @@ export async function restoreCategory(req: Request, res: Response) {
 ================================ */
 export async function forceDeleteCategory(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql` 

@@ -1,18 +1,18 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
+import { Role } from "../types/enums";
+import { Brand } from "../types/primitives";
 import {
-  responseToError,
-  validateId,
   resError,
+  responseToError,
+  validateBody,
+  validateId,
   validateName,
+  validateRoleForActions,
   validateSku,
   validateSlug,
-  validateBody,
   validateUrl,
-  validateRoleForActions,
 } from "../utils/validations";
-import { Brand } from "../types/primitives";
-import { Role } from "../types/enums";
 
 export async function getAllBrands(req: Request, res: Response) {
   try {
@@ -85,6 +85,7 @@ export async function createBrand(req: Request, res: Response) {
 
 export async function updateBrand(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     validateBody(req.body, false);
     const id = validateId(req.params.id);
     const brand: Brand = {
@@ -115,6 +116,7 @@ export async function updateBrand(req: Request, res: Response) {
 
 export async function softDeleteBrand(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const deletedBrand = await sql`
@@ -136,6 +138,7 @@ export async function softDeleteBrand(req: Request, res: Response) {
 
 export async function forceDeleteBrand(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const deletedBrand = await sql`
@@ -156,6 +159,7 @@ export async function forceDeleteBrand(req: Request, res: Response) {
 
 export async function restoreBrand(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     const restoredBrand = await sql`
