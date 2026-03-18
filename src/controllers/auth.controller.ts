@@ -3,9 +3,11 @@ import { User } from "../types/entities";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 import {
+  hashPassword,
   resError,
   responseToError,
   validateBody,
+  validateCode,
   validateEmail,
   validatePassword,
   validatePasswordHash,
@@ -13,6 +15,8 @@ import {
 } from "../utils/validations";
 import { sql } from "../db/supabase";
 import { UserPayload } from "../types/primitives";
+import { CODE_EXPIRATION_MS, verificationCodes } from "../db/emailCheckStore";
+import { transporter } from "../utils/mailer";
 
 dotenv.config();
 
@@ -132,5 +136,74 @@ export async function logout (_: Request, res: Response): Promise<Response> {
     return res.json({ message: "Logout successful" });
   } catch (error) {
     return responseToError(error as Error, res)
+  }
+}
+
+export async function sendCode (req: Request, res: Response) {
+  try {
+    validateBody(req.body, false);
+    const email = validateEmail(req.body.email)
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const code_hash = await hashPassword(code);
+
+    const expiresAt = Date.now() + CODE_EXPIRATION_MS;
+
+    verificationCodes.set(email, {
+      code: code_hash,
+      expiresAt
+    });
+
+    await transporter.sendMail({
+      from: 'Ecommerce App NoReply',
+      to: email,
+      subject: 'Verification Code',
+      html: `
+        <h2>Your verification code</h2>
+        <p>This is the code:</p>
+        <h1>${code}</h1>
+        <p>Expires at 5 minutes</p>
+      `
+    });
+
+    return res.status(200).json({
+      message: "Verification code send successfully"
+    });
+
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+export async function checkCode (req: Request, res: Response) {
+  try {
+    validateBody(req.body, false);
+    const email = validateEmail(req.body.email);
+    const code = validateCode(req.body.code);
+
+    const storedData = verificationCodes.get(email);
+
+    if (!storedData) {
+      return resError(400, "Code not found or expired");
+    }
+
+    if (storedData.expiresAt < Date.now()) {
+      verificationCodes.delete(email);
+      return resError(400, "Code expired");
+    }
+
+    await validatePasswordHash(code, storedData.code);
+
+    verificationCodes.delete(email);
+
+    // llamar a la base de datos para marcar correo como true
+
+    return res.status(200).json({
+      message: "Code verified successfully"
+    });
+
+  } catch (error) {
+    return responseToError(error as Error, res);
   }
 }
