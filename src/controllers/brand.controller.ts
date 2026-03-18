@@ -9,8 +9,10 @@ import {
   validateSlug,
   validateBody,
   validateUrl,
+  validateRoleForActions,
 } from "../utils/validations";
 import { Brand } from "../types/primitives";
+import { Role } from "../types/enums";
 
 export async function getAllBrands(req: Request, res: Response) {
   try {
@@ -60,6 +62,7 @@ export async function getBrandById(req: Request, res: Response) {
 
 export async function createBrand(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     validateBody(req.body, false);
     const brand: Brand = {
       name: validateName(req.body.name),

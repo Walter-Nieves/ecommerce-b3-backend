@@ -14,6 +14,7 @@ import {
   updatePasswordUser,
   updatePhotoUser,
   updateUser,
+  postCheckEmail,
 } from "../controllers/user.controller";
 import { authVerify } from "../middlewares/auth.middleware";
 import { uploadImage } from "../middlewares/file.middleware";
@@ -37,7 +38,8 @@ router.post(
   uploadImage(BucketRoutes.UserImages),
   createUser,
 ); //✅
-// ;router.post("/check-email", postCheckEmail);
+
+router.post("/check-email", postCheckEmail);
 
 // 📌 UPDATE
 router.put("/:id", authVerify(true), updateUser); //✅

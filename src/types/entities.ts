@@ -1,5 +1,10 @@
 import { genre, movement_type, Role } from "./enums";
-import { PaymentOrderStatus, rating, stock_state } from "./primitives";
+import {
+  PaymentOrderStatus,
+  rating,
+  stock_state,
+  waterproofness,
+} from "./primitives";
 
 /** Entidad producto
  * @IMPORTANTE El precio se debe manejar en centavos para evitar problemas de precisión con decimales, por lo que el precio base y el precio de la variante se deben almacenar como enteros representando los centavos (por ejemplo, un precio de $199.99 se almacenaría como 19999)
@@ -29,7 +34,7 @@ interface Product {
   brand_id: number;
   genre: genre;
   movement_type: movement_type;
-  waterproffness: number;
+  waterproofness: waterproofness;
   case_material_id: number;
   crystal_material_id: number;
   stock_state: stock_state;

@@ -11,6 +11,7 @@ import user from "./routes/user.route";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import auth from "./routes/auth.route";
+import primitives from "./routes/primitves.route";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/material", material);
 app.use("/api/color", color);
 app.use("/api/brand", brand);
 app.use("/api/user", user);
+app.use("/api/primitives", primitives);
 app.use("/auth", auth);
 
 const PORT = Number(process.env.PORT ?? 3000);
