@@ -17,16 +17,16 @@ dotenv.config();
 
 const app = express();
 
-app.use(json());
-app.use(cookieParser());
-app.use(morgan("dev"));
-
 app.use(
   cors({
     origin: process.env.FRONT_DOMAIN,
     credentials: true,
   }),
 );
+app.use(json());
+app.use(cookieParser());
+app.use(morgan("dev"));
+
 
 app.use("/api/tag", tag);
 app.use("/api/clasp", clasp);
