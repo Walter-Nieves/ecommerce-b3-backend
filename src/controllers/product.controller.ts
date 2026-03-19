@@ -1,3 +1,4 @@
+
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
 import {
@@ -8,6 +9,13 @@ import {
   validateBody,
   resError
 } from "../utils/validations";
+
+/* ===============================
+   ENUM VALIDATORS
+================================ */
+const validGenres = ["M", "F", "U"];
+const validMovements = ["Q", "A", "M", "S", "K"];
+const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
 
 /* ===============================
    GET ALL (active)
@@ -85,10 +93,11 @@ export async function getDeletedProductById(req: Request, res: Response) {
   }
 }
 
-// buscar productos y variantes
+/* ===============================
+   SEARCH
+================================ */
 export async function searchProducts(req: Request, res: Response) {
   try {
-
     const {
       brand,
       category,
@@ -181,20 +190,32 @@ export async function createProduct(req: Request, res: Response) {
       resError(400, "Description must be a string");
     }
 
-    if (typeof base_price !== "number" || base_price <= 0) {
-      resError(400, "Base price must be a positive number");
+    if (!Number.isInteger(base_price) || base_price <= 0) {
+      resError(400, "Base price must be a positive integer");
     }
 
-    if (typeof brand_id !== "number") {
-      resError(400, "Brand ID must be a number");
+    if (typeof brand_id !== "string") {
+      resError(400, "Brand ID must be a UUID string");
     }
 
-    if (typeof case_material_id !== "number") {
-      resError(400, "Case material ID must be a number");
+    if (typeof case_material_id !== "string") {
+      resError(400, "Case material ID must be a UUID string");
     }
 
-    if (typeof crystal_material_id !== "number") {
-      resError(400, "Crystal material ID must be a number");
+    if (typeof crystal_material_id !== "string") {
+      resError(400, "Crystal material ID must be a UUID string");
+    }
+
+    if (!validGenres.includes(genre)) {
+      resError(400, "Invalid genre");
+    }
+
+    if (!validMovements.includes(movement_type)) {
+      resError(400, "Invalid movement type");
+    }
+
+    if (!validStockStates.includes(stock_state)) {
+      resError(400, "Invalid stock state");
     }
 
     const newProduct = await sql`
@@ -264,20 +285,32 @@ export async function updateProduct(req: Request, res: Response) {
       resError(400, "Description must be a string");
     }
 
-    if (typeof base_price !== "number" || base_price <= 0) {
-      resError(400, "Base price must be a positive number");
+    if (!Number.isInteger(base_price) || base_price <= 0) {
+      resError(400, "Base price must be a positive integer");
     }
 
-    if (typeof brand_id !== "number") {
-      resError(400, "Brand ID must be a number");
+    if (typeof brand_id !== "string") {
+      resError(400, "Brand ID must be a UUID string");
     }
 
-    if (typeof case_material_id !== "number") {
-      resError(400, "Case material ID must be a number");
+    if (typeof case_material_id !== "string") {
+      resError(400, "Case material ID must be a UUID string");
     }
 
-    if (typeof crystal_material_id !== "number") {
-      resError(400, "Crystal material ID must be a number");
+    if (typeof crystal_material_id !== "string") {
+      resError(400, "Crystal material ID must be a UUID string");
+    }
+
+    if (!validGenres.includes(genre)) {
+      resError(400, "Invalid genre");
+    }
+
+    if (!validMovements.includes(movement_type)) {
+      resError(400, "Invalid movement type");
+    }
+
+    if (!validStockStates.includes(stock_state)) {
+      resError(400, "Invalid stock state");
     }
 
     const updated = await sql`

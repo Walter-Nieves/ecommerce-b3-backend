@@ -8,7 +8,7 @@ import {
 
 /** Entidad producto
  * @IMPORTANTE El precio se debe manejar en centavos para evitar problemas de precisión con decimales, por lo que el precio base y el precio de la variante se deben almacenar como enteros representando los centavos (por ejemplo, un precio de $199.99 se almacenaría como 19999)
- * @property {number} id - ID del producto
+ * @property {string} id - ID del producto
  * @property {string} name - Nombre del producto mostrable para el usuario
  * @property {string} slug - Slug del producto para uso interno, marcar como único para evitar duplicados
  * @property {string} description - Descripción del producto
@@ -26,14 +26,14 @@ import {
  * @property {Date | null} deleted_at - Fecha de eliminación del producto, null si no ha sido eliminado
  */
 interface Product {
-  id: number;
+  id: string; // tipo uuid
   name: string;
-  slug: string;
+  slug: string; // unico
   description: string;
-  base_price: number;
+  base_price: number; // numeros enteros no decimales
   brand_id: string; // llave foranea tipo uuid a brand
   genre: genre;
-  movement_type: movement_type;
+  movement_type: movement_type; 
   waterproofness: waterproofness;
   case_material_id: string; // llave foranea tipo uuid a material
   crystal_material_id: string; // llave foranea tipo uuid a material
