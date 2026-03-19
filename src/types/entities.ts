@@ -13,12 +13,12 @@ import {
  * @property {string} slug - Slug del producto para uso interno, marcar como único para evitar duplicados
  * @property {string} description - Descripción del producto
  * @property {number} base_price - Precio base del producto, sin aplicar descuentos ni impuestos (se muestra al usuario como referencia, el precio final puede variar según promociones, impuestos y descuentos aplicados)
- * @property {number} brand_id - ID de la marca del producto, referencia a la entidad Marca
+ * @property {string} brand_id - ID de la marca del producto, referencia a la entidad Marca
  * @property {genre} genre - Género para el que está diseñado el producto
  * @property {movement_type} movement_type - Tipo de movimiento del producto
  * @property {number} waterproffness - Resistencia al agua del producto medida en metros
- * @property {number} case_material_id - ID del material de la caja del producto, referencia al tipo primitivo Material
- * @property {number} crystal_material_id - ID del material del cristal del producto, referencia al tipo primitivo Material
+ * @property {string} case_material_id - ID del material de la caja del producto, referencia al tipo primitivo Material
+ * @property {string} crystal_material_id - ID del material del cristal del producto, referencia al tipo primitivo Material
  * @property {stock_state} stock_state - Estado del stock del producto
  * @property {boolean} is_deleted - Indica si el producto ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  * @property {Date} created_at - Fecha de creación del producto
@@ -31,14 +31,14 @@ interface Product {
   slug: string;
   description: string;
   base_price: number;
-  brand_id: number;
+  brand_id: string; // llave foranea tipo uuid a brand
   genre: genre;
   movement_type: movement_type;
   waterproofness: waterproofness;
-  case_material_id: number;
-  crystal_material_id: number;
+  case_material_id: string; // llave foranea tipo uuid a material
+  crystal_material_id: string; // llave foranea tipo uuid a material
   stock_state: stock_state;
-  is_deleted: boolean;
+  is_deleted: boolean; // por defecto false
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
