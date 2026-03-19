@@ -119,30 +119,30 @@ export async function refresh(req: Request, res: Response): Promise<Response> {
   }
 }
 
-export async function logout (_: Request, res: Response): Promise<Response> {
+export async function logout(_: Request, res: Response): Promise<Response> {
   try {
-    res.clearCookie('accessToken', {
+    res.clearCookie("accessToken", {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
-      maxAge: 0
-    })
-    res.clearCookie('refreshToken', {
+      sameSite: "lax",
+      maxAge: 0,
+    });
+    res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
-      maxAge: 0
-    })
+      sameSite: "lax",
+      maxAge: 0,
+    });
     return res.json({ message: "Logout successful" });
   } catch (error) {
-    return responseToError(error as Error, res)
+    return responseToError(error as Error, res);
   }
 }
 
-export async function sendCode (req: Request, res: Response) {
+export async function sendCode(req: Request, res: Response) {
   try {
     validateBody(req.body, false);
-    const email = validateEmail(req.body.email)
+    const email = validateEmail(req.body.email);
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -152,31 +152,30 @@ export async function sendCode (req: Request, res: Response) {
 
     verificationCodes.set(email, {
       code: code_hash,
-      expiresAt
+      expiresAt,
     });
 
     await transporter.sendMail({
-      from: 'Ecommerce App NoReply',
+      from: "Ecommerce App NoReply",
       to: email,
-      subject: 'Verification Code',
+      subject: "Verification Code",
       html: `
         <h2>Your verification code</h2>
         <p>This is the code:</p>
         <h1>${code}</h1>
         <p>Expires at 5 minutes</p>
-      `
+      `,
     });
 
     return res.status(200).json({
-      message: "Verification code send successfully"
+      message: "Verification code send successfully",
     });
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
 }
 
-export async function checkCode (req: Request, res: Response) {
+export async function checkCode(req: Request, res: Response) {
   try {
     validateBody(req.body, false);
     const email = validateEmail(req.body.email);
@@ -200,9 +199,8 @@ export async function checkCode (req: Request, res: Response) {
     // llamar a la base de datos para marcar correo como true
 
     return res.status(200).json({
-      message: "Code verified successfully"
+      message: "Code verified successfully",
     });
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
