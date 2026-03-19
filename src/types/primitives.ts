@@ -2,6 +2,17 @@ import { Role } from "./enums";
 
 type rating = 1 | 2 | 3 | 4 | 5;
 
+export const waterproofness_values = [
+  "0m",
+  "30m",
+  "50m",
+  "100m",
+  "200m",
+  "DIVER",
+] as const;
+
+export type waterproofness = (typeof waterproofness_values)[number];
+
 type stock_state = "in_stock" | "out_of_stock" | "pre_order";
 
 type PaymentOrderStatus =

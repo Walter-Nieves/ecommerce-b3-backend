@@ -1,5 +1,10 @@
 import { genre, movement_type, Role } from "./enums";
-import { PaymentOrderStatus, rating, stock_state } from "./primitives";
+import {
+  PaymentOrderStatus,
+  rating,
+  stock_state,
+  waterproofness,
+} from "./primitives";
 
 /** Entidad producto
  * @IMPORTANTE El precio se debe manejar en centavos para evitar problemas de precisión con decimales, por lo que el precio base y el precio de la variante se deben almacenar como enteros representando los centavos (por ejemplo, un precio de $199.99 se almacenaría como 19999)
@@ -29,7 +34,7 @@ interface Product {
   brand_id: number;
   genre: genre;
   movement_type: movement_type;
-  waterproffness: number;
+  waterproofness: waterproofness;
   case_material_id: number;
   crystal_material_id: number;
   stock_state: stock_state;
@@ -49,6 +54,8 @@ interface Product {
  * @property {number} strap_material_id - ID del material de la correa de la variante, referencia al tipo primitivo Material
  * @property {number} clasp_id - ID del cierre de la variante, referencia al tipo primitivo Clasp
  * @property {number} price - Precio específico de la variante, puede ser diferente al precio base del producto, se muestra al usuario como el precio final de la variante
+ * @property {number | null} discount_price - Precio de descuento específico de la variante, si aplica, se muestra al usuario como el precio final de la variante con descuento aplicado
+ * @Info('IMPORTANTE: el descuento es el valor final, el backend no va a hacer operaciones con flotantes para evitar errores')
  * @property {boolean} is_deleted - Indica si la variante ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  * @property {Date} created_at - Fecha de creación de la variante
  * @property {Date} updated_at - Fecha de última actualización de la variante
@@ -62,6 +69,7 @@ interface ProductVariant {
   strap_material_id: number;
   clasp_id: number;
   price: number;
+  discount_price?: number | null;
   is_deleted: boolean;
   created_at: Date;
   updated_at: Date;

@@ -27,5 +27,5 @@ export enum Role {
 export enum BucketRoutes {
   UserImages = "user_images",
   BrandImages = "brand_images",
-  ProductImages = "product_images"
+  ProductImages = "product_images",
 }

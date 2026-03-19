@@ -1,16 +1,18 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
+import { Role } from "../types/enums";
+import { Color } from "../types/primitives";
 import {
   resError,
   responseToError,
   validateBody,
   validateHexCode,
   validateId,
-  validateSku,
   validateName,
+  validateRoleForActions,
+  validateSku,
   validateSlug,
 } from "../utils/validations";
-import { Color } from "../types/primitives";
 
 export async function getAllColor(req: Request, res: Response) {
   try {
@@ -57,6 +59,7 @@ export async function getColorByHexId(req: Request, res: Response) {
 
 export async function postColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     validateBody(req.body, false);
 
     const color: Color = {
@@ -80,6 +83,7 @@ export async function postColor(req: Request, res: Response) {
 
 export async function softDeleteColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
     await sql`
           UPDATE COLOR
@@ -95,6 +99,7 @@ export async function softDeleteColor(req: Request, res: Response) {
 
 export async function forceDeleteColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = req.params.id as string;
     const deletedMaterial = await sql`
       DELETE FROM COLOR
@@ -114,6 +119,7 @@ export async function forceDeleteColor(req: Request, res: Response) {
 
 export async function restoreColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
     await sql`
@@ -130,6 +136,7 @@ export async function restoreColor(req: Request, res: Response) {
 
 export async function putColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     validateBody(req.body, false);
 
     const id = validateId(req.params.id);
