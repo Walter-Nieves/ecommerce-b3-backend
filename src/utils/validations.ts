@@ -30,9 +30,7 @@ export function responseToError(error: Error, res: Response): Response {
 
 export function validateToken(token: string): JwtPayload | never {
   try {
-    console.log("Token: ", token);
     const payload = jwt.verify(token, SECRET) as JwtPayload;
-    console.log("Payload: ", payload);
     return payload;
   } catch (error) {
     resError(401, "Invalid or expired token");
@@ -457,7 +455,7 @@ export async function validatePasswordHash(
   const isMatch = await bcrypt.compare(trimmedPassword, current_password_hash);
 
   if (!isMatch) {
-    resError(400, "Invalid password");
+    resError(401, "Invalid password");
   }
 }
 

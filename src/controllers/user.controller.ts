@@ -245,8 +245,6 @@ export const createUser = async (
       role,
     };
 
-    console.log("antes de");
-
     const [newUser] = await sql<User[]>`
       INSERT INTO users (
         first_name,
@@ -272,7 +270,6 @@ export const createUser = async (
       )
       RETURNING *
     `;
-    console.log("despues de");
 
     if (!newUser) {
       resError(500, "User creation failed");

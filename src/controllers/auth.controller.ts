@@ -41,7 +41,7 @@ export async function login(req: Request, res: Response): Promise<Response> {
       resError(404, "User not found");
     }
 
-    validatePasswordHash(password, user.password_hash);
+    await validatePasswordHash(password, user.password_hash);
 
     const accessPayload: JwtPayload = {
       sub: user.id,
