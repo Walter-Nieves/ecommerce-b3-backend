@@ -342,7 +342,7 @@ export function validateSimpleName(
   }
 
   // Solo letras (incluye tildes) y espacios
-  const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+  const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ\s]+$/;
 
   if (!nameRegex.test(trimmed)) {
     throw new Error(fieldName + " can only contain letters and spaces");
@@ -419,11 +419,22 @@ export function validatePhone(phone: unknown): string | never {
     resError(400, "Phone cannot be empty");
   }
 
-  //numeros y 10
-  const phoneRegex = /^[0-9]{10}$/;
+  if ((trimmedPhone.match(/\+/g) || []).length > 1) {
+    resError(400, "Only one '+' allowed");
+  }
 
-  if (!phoneRegex.test(trimmedPhone)) {
-    resError(400, "Phone must contain exactly 10 digits");
+  if ((trimmedPhone.match(/\(/g) || []).length > 1) {
+    resError(400, "Only one '(' allowed");
+  }
+
+  if ((trimmedPhone.match(/\)/g) || []).length > 1) {
+    resError(400, "Only one ')' allowed");
+  }
+
+  const regex = /^[0-9\s()+]*?(ext\.\s?[0-9]+)?$/i;
+
+  if (!regex.test(trimmedPhone)) {
+    return "Invalid format. Example: +57 (300) 1234567 ext. 123";
   }
 
   return trimmedPhone;
