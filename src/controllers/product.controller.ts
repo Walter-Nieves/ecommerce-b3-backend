@@ -333,7 +333,7 @@ export async function updateProduct(req: Request, res: Response) {
     `;
 
     if (updated.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      resError(404, "Product not founded");
     }
 
     res.json(updated[0]);
