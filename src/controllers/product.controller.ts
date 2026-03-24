@@ -9,13 +9,22 @@ import {
   validateBody,
   resError
 } from "../utils/validations";
+import  { movement_type, genre  } from "../types/enums";
+import  { stock_state } from "../types/primitives";
 
-/* ===============================
-   ENUM VALIDATORS
-================================ */
-const validGenres = ["M", "F", "U"];
-const validMovements = ["Q", "A", "M", "S", "K"];
-const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
+type ProductBody = {
+  name: string;
+  slug: string;
+  description: string;
+  base_price: number;
+  brand_id: string;
+  genre: genre;
+  movement_type: movement_type;
+  waterproofness: string;
+  case_material_id: string;
+  crystal_material_id: string;
+  stock_state: stock_state;
+};
 
 /* ===============================
    GET ALL (active)
@@ -175,13 +184,13 @@ export async function createProduct(req: Request, res: Response) {
       description,
       base_price,
       brand_id,
-      genre,
-      movement_type,
+      genre:genreValue,
+      movement_type:movementValue,
       waterproofness,
       case_material_id,
       crystal_material_id,
-      stock_state,
-    } = req.body;
+      stock_state:stockValue,
+    } = req.body as ProductBody;
 
     const validatedName = validateName(name);
     const validatedSlug = validateSlug(slug, false);
@@ -206,17 +215,19 @@ export async function createProduct(req: Request, res: Response) {
       resError(400, "Crystal material ID must be a UUID string");
     }
 
-    if (!validGenres.includes(genre)) {
-      resError(400, "Invalid genre");
-    }
+   if (!Object.values(genre).includes(genreValue)) {
+  resError(400, "Invalid genre");
+}
 
-    if (!validMovements.includes(movement_type)) {
-      resError(400, "Invalid movement type");
-    }
+if (!Object.values(movement_type).includes(movementValue)) {
+  resError(400, "Invalid movement type");
+}
 
-    if (!validStockStates.includes(stock_state)) {
-      resError(400, "Invalid stock state");
-    }
+const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
+
+if (!validStockStates.includes(stockValue)) {
+  resError(400, "Invalid stock state");
+}
 
     const newProduct = await sql`
       INSERT INTO product (
@@ -238,12 +249,12 @@ export async function createProduct(req: Request, res: Response) {
         ${description},
         ${base_price},
         ${brand_id},
-        ${genre},
-        ${movement_type},
+        ${genreValue},
+        ${movementValue},
         ${waterproofness},
         ${case_material_id},
         ${crystal_material_id},
-        ${stock_state}
+        ${stockValue}
       )
       RETURNING *
     `;
@@ -264,19 +275,19 @@ export async function updateProduct(req: Request, res: Response) {
 
     validateBody(req.body, false);
 
-    const {
+  const {
       name,
       slug,
       description,
       base_price,
       brand_id,
-      genre,
-      movement_type,
+      genre:genreValue,
+      movement_type:movementValue,
       waterproofness,
       case_material_id,
       crystal_material_id,
-      stock_state,
-    } = req.body;
+      stock_state:stockValue,
+    } = req.body as ProductBody;
 
     const validatedName = validateName(name);
     const validatedSlug = validateSlug(slug, false);
@@ -301,17 +312,20 @@ export async function updateProduct(req: Request, res: Response) {
       resError(400, "Crystal material ID must be a UUID string");
     }
 
-    if (!validGenres.includes(genre)) {
-      resError(400, "Invalid genre");
-    }
+    
+   if (!Object.values(genre).includes(genreValue)) {
+  resError(400, "Invalid genre");
+}
 
-    if (!validMovements.includes(movement_type)) {
-      resError(400, "Invalid movement type");
-    }
+if (!Object.values(movement_type).includes(movementValue)) {
+  resError(400, "Invalid movement type");
+}
 
-    if (!validStockStates.includes(stock_state)) {
-      resError(400, "Invalid stock state");
-    }
+const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
+
+if (!validStockStates.includes(stockValue)) {
+  resError(400, "Invalid stock state");
+}
 
     const updated = await sql`
       UPDATE product
@@ -321,12 +335,12 @@ export async function updateProduct(req: Request, res: Response) {
         description = ${description},
         base_price = ${base_price},
         brand_id = ${brand_id},
-        genre = ${genre},
-        movement_type = ${movement_type},
+        genre = ${genreValue},
+        movement_type = ${movementValue},
         waterproofness = ${waterproofness},
         case_material_id = ${case_material_id},
         crystal_material_id = ${crystal_material_id},
-        stock_state = ${stock_state},
+        stock_state = ${stockValue},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
