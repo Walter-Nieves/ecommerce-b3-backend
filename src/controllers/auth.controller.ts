@@ -198,8 +198,6 @@ export async function checkCode(req: Request, res: Response) {
 
     verificationCodes.delete(email);
 
-    // llamar a la base de datos para marcar correo como true
-
     return res.status(200).json({
       message: "Code verified successfully",
     });
