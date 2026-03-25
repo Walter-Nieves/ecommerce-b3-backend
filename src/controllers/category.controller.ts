@@ -109,6 +109,27 @@ export async function updateCategory(req: Request, res: Response) {
 }
 
 /* ===============================
+   RESTORE
+================================ */
+export async function restoreCategory(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const id = validateId(req.params.id);
+
+    await sql`
+      UPDATE category
+      SET is_deleted = false
+      WHERE id = ${id}
+    `;
+
+    res.json({ message: "Categoría restaurada" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+
+/* ===============================
    SOFT DELETE
 ================================ */
 export async function softDeleteCategory(req: Request, res: Response) {
@@ -128,25 +149,6 @@ export async function softDeleteCategory(req: Request, res: Response) {
   }
 }
 
-/* ===============================
-   RESTORE
-================================ */
-export async function restoreCategory(req: Request, res: Response) {
-  try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
-    const id = validateId(req.params.id);
-
-    await sql`
-      UPDATE category
-      SET is_deleted = false
-      WHERE id = ${id}
-    `;
-
-    res.json({ message: "Categoría restaurada" });
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
 
 /* ===============================
    FORCE DELETE

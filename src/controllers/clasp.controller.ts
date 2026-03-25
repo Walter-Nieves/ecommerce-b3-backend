@@ -105,25 +105,6 @@ export async function updateClasp(req: Request, res: Response) {
   }
 }
 
-/* ===============================
-   SOFT DELETE
-================================ */
-export async function softDeleteClasp(req: Request, res: Response) {
-  try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
-    const id = validateId(req.params.id);
-
-    await sql`
-      UPDATE clasp
-      SET is_deleted = true
-      WHERE id = ${id}
-    `;
-
-    res.json({ message: "Clasp eliminada" });
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
 
 /* ===============================
    RESTORE
@@ -159,6 +140,27 @@ export async function forceDeleteClasp(req: Request, res: Response) {
     `;
 
     res.json({ message: "Clasp eliminada permanentemente" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+
+/* ===============================
+   SOFT DELETE
+================================ */
+export async function softDeleteClasp(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const id = validateId(req.params.id);
+
+    await sql`
+      UPDATE clasp
+      SET is_deleted = true
+      WHERE id = ${id}
+    `;
+
+    res.json({ message: "Clasp eliminada" });
   } catch (error) {
     return responseToError(error as Error, res);
   }
