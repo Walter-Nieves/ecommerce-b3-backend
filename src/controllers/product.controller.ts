@@ -71,7 +71,7 @@ export async function getProductById(req: Request, res: Response) {
     `;
 
     if (product.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      resError(404, "Product not found");
     }
 
     res.json(product[0]);
@@ -93,7 +93,7 @@ export async function getDeletedProductById(req: Request, res: Response) {
     `;
 
     if (product.length === 0) {
-      return res.status(404).json({ error: "Deleted product not found" });
+      resError(404, "Delete Product not found");
     }
 
     res.json(product[0]);
@@ -347,7 +347,7 @@ if (!validStockStates.includes(stockValue)) {
     `;
 
     if (updated.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      resError(404, "Product not found");
     }
 
     res.json(updated[0]);

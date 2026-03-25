@@ -21,6 +21,8 @@ import { transporter } from "../utils/mailer";
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
+const FRONT_DOMAIN = process.env.FRONT_DOMAIN as string;
+const isInLocalHost = FRONT_DOMAIN.includes("localhost");
 
 export async function login(req: Request, res: Response): Promise<Response> {
   try {
@@ -61,15 +63,15 @@ export async function login(req: Request, res: Response): Promise<Response> {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: !isInLocalHost,
+      sameSite: isInLocalHost ? "lax" : "none",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: !isInLocalHost,
+      sameSite: isInLocalHost ? "lax" : "none",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -108,8 +110,8 @@ export async function refresh(req: Request, res: Response): Promise<Response> {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: !isInLocalHost,
+      sameSite: isInLocalHost ? "lax" : "none",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
@@ -123,14 +125,14 @@ export async function logout(_: Request, res: Response): Promise<Response> {
   try {
     res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: !isInLocalHost,
+      sameSite: isInLocalHost ? "lax" : "none",
       maxAge: 0,
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: !isInLocalHost,
+      sameSite: isInLocalHost ? "lax" : "none",
       maxAge: 0,
     });
     return res.json({ message: "Logout successful" });
@@ -195,8 +197,6 @@ export async function checkCode(req: Request, res: Response) {
     await validatePasswordHash(code, storedData.code);
 
     verificationCodes.delete(email);
-
-    // llamar a la base de datos para marcar correo como true
 
     return res.status(200).json({
       message: "Code verified successfully",
