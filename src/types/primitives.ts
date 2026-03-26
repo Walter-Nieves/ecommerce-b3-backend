@@ -11,9 +11,11 @@ export const waterproofness_values = [
   "DIVER",
 ] as const;
 
-export type waterproofness = (typeof waterproofness_values)[number];
+type waterproofness = (typeof waterproofness_values)[number];
 
-type stock_state = "in_stock" | "out_of_stock" | "pre_order";
+export const stock_state_values = ["in_stock", "out_of_stock", "pre_order"];
+
+type stock_state = (typeof stock_state_values)[number];
 
 type PaymentOrderStatus =
   | "pending" // pendiente
@@ -132,4 +134,5 @@ export type {
   Brand,
   Category,
   UserPayload,
+  waterproofness,
 };
