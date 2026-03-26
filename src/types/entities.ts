@@ -33,7 +33,7 @@ interface Product {
   base_price: number; // numeros enteros no decimales
   brand_id: string; // llave foranea tipo uuid a brand
   genre: genre;
-  movement_type: movement_type; 
+  movement_type: movement_type;
   waterproofness: waterproofness;
   case_material_id: string; // llave foranea tipo uuid a material
   crystal_material_id: string; // llave foranea tipo uuid a material
@@ -175,8 +175,6 @@ interface User {
   password_hash: string;
   phone: string;
   photo_url?: string | null;
-  is_active?: boolean;
-  email_verified?: boolean;
   role: Role;
   created_at?: Date;
   updated_at?: Date;
