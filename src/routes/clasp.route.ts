@@ -25,6 +25,6 @@ router.put("/:id", authVerify(true), updateClasp);
 router.delete("/force/:id", authVerify(true), forceDeleteClasp);
 router.delete("/soft/:id", authVerify(true), softDeleteClasp);
 
-router.patch("/restore/:id", restoreClasp);
+router.patch("/restore/:id",authVerify(true), restoreClasp);
 
 export default router;
