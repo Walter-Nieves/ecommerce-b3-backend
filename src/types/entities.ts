@@ -183,7 +183,7 @@ interface User {
 }
 
 interface Address {
-  id: string;
+  id?: string;
   user_id: string;
   country: string;
   state: string;
@@ -191,7 +191,8 @@ interface Address {
   postal_code: string;
   street_address: string;
   reference: string;
-  is_default: boolean;
+  is_default?: boolean;
+  is_deleted?:boolean;
 }
 
 export type {
