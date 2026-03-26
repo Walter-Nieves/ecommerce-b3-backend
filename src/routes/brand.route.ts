@@ -11,7 +11,7 @@ router.get("/all-deleted", getAllDeletedBrands);
 router.get("/images", getAllImages(BucketRoutes.BrandImages))
 router.get("/:id", getBrandById);
 
-router.post("/", authVerify(true), uploadImage(BucketRoutes.BrandImages), createBrand);
+router.post("/", authVerify(false), uploadImage(BucketRoutes.BrandImages), createBrand);
 
 router.put("/:id", authVerify(true), uploadImage(BucketRoutes.BrandImages), updateBrand);
 
