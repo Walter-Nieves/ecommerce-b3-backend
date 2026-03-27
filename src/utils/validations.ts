@@ -509,3 +509,46 @@ export function validateCode(code: unknown): string {
 
   return trimmedCode;
 }
+
+export function validateText(
+  text: unknown,
+  fieldName: string,
+  minLength: number,
+  maxLength: number,
+  allowSpecial: boolean
+): string | never {
+  if (text == null) {
+    resError(400, fieldName + " is required");
+  }
+
+  if (typeof text !== "string") {
+    throw new Error(fieldName + " must be a string");
+  }
+
+  let trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    throw new Error(fieldName + " cannot be empty");
+  }
+
+  if (trimmed.length < minLength || trimmed.length > maxLength) {
+    throw new Error(`${fieldName} must be between ${minLength} and ${maxLength} characters`);
+  }
+
+  let textRegex: RegExp
+
+  if (allowSpecial) {
+    textRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ\s0-9!@#$%^&*(),.?":{}_\-\+\=~|]+$/;
+  } else {
+    textRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ\s0-9]+$/;
+  }
+
+  if (!textRegex.test(trimmed)) {
+    throw new Error(fieldName + " is invalid Regex");
+  }
+
+  // Elimina espacios múltiples
+  trimmed = trimmed.replace(/\s+/g, " ");
+
+  return trimmed;
+}

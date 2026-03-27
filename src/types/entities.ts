@@ -192,7 +192,6 @@ interface Address {
   street_address: string;
   reference: string;
   is_default?: boolean;
-  is_deleted?:boolean;
 }
 
 export type {

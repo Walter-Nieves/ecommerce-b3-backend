@@ -1,21 +1,26 @@
 import { Router } from "express";
 import { authVerify } from "../middlewares/auth.middleware";
-import { createAddress, forceDeleteAddress, getAddressById, getAllAddress, getDeletedAddress, restoreAddress, softDeleteAddress, updateAddress } from "../controllers/address.controller";
+import {
+  createAddress,
+  DeleteAddress,
+  getAddressById,
+  getAllAddress,
+  getAllMeAddress,
+  getAllUserAddress,
+  updateAddress,
+} from "../controllers/address.controller";
 
-const router = Router()
+const router = Router();
 
-router.get("/all", getAllAddress)
-router.get("/all-deleted", getDeletedAddress)
-router.get("/:id", getAddressById )
+router.get("/all", authVerify(true), getAllAddress);
+router.get("/me", authVerify(true), getAllMeAddress);
+router.get("/user/:id", authVerify(true), getAllUserAddress);
+router.get("/:id", authVerify(true), getAddressById);
 
-router.post("/", authVerify(true), createAddress )
+router.post("/", authVerify(true), createAddress);
 
-router.put("/:id", authVerify(true), updateAddress )
+router.put("/:id", authVerify(true), updateAddress);
 
-router.delete("/force/:id", authVerify(true), forceDeleteAddress)
-router.delete("/soft/:id", authVerify(true), softDeleteAddress)
+router.delete("/:id", authVerify(true), DeleteAddress);
 
-router.patch("/restore/:id", authVerify(true), restoreAddress) 
-
-
-export default router
+export default router;

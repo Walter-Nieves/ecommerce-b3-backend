@@ -4,17 +4,20 @@ import { Role } from "../types/enums";
 import { Address } from "../types/entities";
 
 import {
+  resError,
   responseToError,
+  validateBody,
   validateId,
   validateRoleForActions,
+  validateText,
 } from "../utils/validations";
 
-export async function getAllAddress(req: Request, res: Response) {
+export async function getAllAddress(_: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+
     const address = await sql`
-      SELECT * FROM address
-      WHERE is_deleted = false
-      ORDER BY city
+      SELECT * FROM address ORDER BY city
     `;
 
     res.json(address);
@@ -23,15 +26,17 @@ export async function getAllAddress(req: Request, res: Response) {
   }
 }
 
-
-export async function getDeletedAddress(req: Request, res: Response) {
+export async function getAllMeAddress(_: Request, res: Response) {
   try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
+    const id = validateId(res.locals.user.sub);
 
     const address = await sql`
-      SELECT * FROM address
-      WHERE is_deleted = true
-      ORDER BY city
+      SELECT * FROM address WHERE user_id = ${id} ORDER BY city
     `;
 
     res.json(address);
@@ -40,15 +45,34 @@ export async function getDeletedAddress(req: Request, res: Response) {
   }
 }
 
-
-export async function getAddressById(req: Request, res: Response) {
+export async function getAllUserAddress(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+
     const id = validateId(req.params.id);
 
     const address = await sql`
-      SELECT * FROM address
-      WHERE id = ${id}
+      SELECT * FROM address WHERE user_id = ${id} ORDER BY city
     `;
+
+    res.json(address);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+export async function getAddressById(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const id = validateId(req.params.id);
+
+    const address = await sql`
+      SELECT * FROM address WHERE id = ${id}
+    `;
+
+    if (address.length === 0) {
+      resError(404,"Address not found");
+    }
 
     res.json(address[0]);
   } catch (error) {
@@ -58,14 +82,44 @@ export async function getAddressById(req: Request, res: Response) {
 
 export async function createAddress(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
+    const id = validateId(res.locals.user.sub);
+    const country = validateText(req.body.country, "Country", 3, 70, false);
+    const state = validateText(req.body.state, "State", 3, 70, false);
+    const city = validateText(req.body.city, "City", 3, 70, false);
+    const postal_code = validateText(
+      req.body.postal_code,
+      "Postal Code",
+      3,
+      70,
+      true,
+    );
+    const street_address = validateText(
+      req.body.street_address,
+      "Street Address",
+      3,
+      70,
+      true,
+    );
+    const reference = validateText(
+      req.body.reference,
+      "Reference",
+      10,
+      256,
+      true,
+    );
     const address: Address = {
-      user_id: req.body.user_id,
-      country: req.body.country,
-      state: req.body.state,
-      city: req.body.city,
-      postal_code: req.body.postal_code,
-      street_address: req.body.street_address,
-      reference: req.body.reference,
+      user_id: id,
+      country,
+      state,
+      city,
+      postal_code,
+      street_address,
+      reference,
     };
 
     const newAddress = await sql`
@@ -98,22 +152,49 @@ export async function createAddress(req: Request, res: Response) {
 
 export async function updateAddress(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
     const id = validateId(req.params.id);
 
-    const address: Address = {
-      user_id: req.body.user_id,
-      country: req.body.country,
-      state: req.body.state,
-      city: req.body.city,
-      postal_code: req.body.postal_code,
-      street_address: req.body.street_address,
-      reference: req.body.reference,
+    const country = validateText(req.body.country, "Country", 3, 70, false);
+    const state = validateText(req.body.state, "State", 3, 70, false);
+    const city = validateText(req.body.city, "City", 3, 70, false);
+    const postal_code = validateText(
+      req.body.postal_code,
+      "Postal Code",
+      3,
+      70,
+      true,
+    );
+    const street_address = validateText(
+      req.body.street_address,
+      "Street Address",
+      3,
+      70,
+      true,
+    );
+    const reference = validateText(
+      req.body.reference,
+      "Reference",
+      10,
+      256,
+      true,
+    );
+    const address: Omit<Address, "user_id"> = {
+      country,
+      state,
+      city,
+      postal_code,
+      street_address,
+      reference,
     };
 
     const updated = await sql`
       UPDATE address
       SET
-        user_id = ${address.user_id},
         country = ${address.country},
         state = ${address.state},
         city = ${address.city},
@@ -124,60 +205,37 @@ export async function updateAddress(req: Request, res: Response) {
       RETURNING *
     `;
 
+    if (updated.length === 0) {
+      resError(404, "Address no encontrada");
+    }
+
     res.json(updated[0]);
   } catch (error) {
     return responseToError(error as Error, res);
   }
 }
 
-export async function restoreAddress(req: Request, res: Response) {
+export async function DeleteAddress(req: Request, res: Response) {
   try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
 
     const id = validateId(req.params.id);
 
-    await sql`
-      UPDATE address
-      SET is_deleted = false
-      WHERE id = ${id}
-    `;
-
-    res.json({ message: "Address restaurada" });
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
-
-export async function softDeleteAddress(req: Request, res: Response) {
-  try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin]);
-
-    const id = validateId(req.params.id);
-
-    await sql`
-      UPDATE address
-      SET is_deleted = true
-      WHERE id = ${id}
-    `;
-
-    res.json({ message: "Address eliminada" });
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
-
-export async function forceDeleteAddress(req: Request, res: Response) {
-  try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin]);
-
-    const id = validateId(req.params.id);
-
-    await sql`
+    const result = await sql`
       DELETE FROM address
       WHERE id = ${id}
+      RETURNING *
     `;
 
-    res.json({ message: "Address eliminada permanentemente" });
+    if (result.length === 0) {
+      resError(404, "Address no encontrada");
+    }
+
+    res.json({ message: "Address eliminada correctamente" });
   } catch (error) {
     return responseToError(error as Error, res);
   }

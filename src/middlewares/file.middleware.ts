@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { upload, storage } from "../db/supabase";
-import { resError, responseToError, validateBody, validateNumber, validateUrl } from "../utils/validations";
-import { BucketRoutes } from '../types/enums';
+import {
+  resError,
+  responseToError,
+  validateBody,
+  validateNumber,
+  validateUrl,
+} from "../utils/validations";
+import { BucketRoutes } from "../types/enums";
 
 const bucketName = process.env.SUPABASE_BUCKET as string;
 
@@ -29,13 +35,11 @@ export function uploadImage(route: BucketRoutes) {
         const filePath = `${route}/${fileName}`;
 
         // Subir el archivo a Supabase Storage
-        const { error } = await storage.from(bucketName).upload(
-          filePath,
-          file.buffer,
-          {
-            contentType: file.mimetype
-          }
-        )
+        const { error } = await storage
+          .from(bucketName)
+          .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+          });
 
         // Manejar errores de subida
         if (error) {
@@ -51,51 +55,44 @@ export function uploadImage(route: BucketRoutes) {
 
         // Continuar con el siguiente middleware o controlador
         next();
-
       } catch (error) {
         responseToError(error as Error, res);
       }
-    })
-  }
+    });
+  };
 }
 
 export function getAllImages(route: BucketRoutes) {
   return async (req: Request, res: Response) => {
     try {
-      validateBody(req.body, false);
-      const limit = validateNumber(req.body.limit, "int", 1, 50);
-      const offset = validateNumber(req.body.offset, "int", 0, 1000);
-      const order = req.body.order === "desc" ? "desc" : "asc";
-
       const { data, error } = await storage.from(bucketName).list(route, {
-        limit,
-        offset,
+        limit: 1000,
+        offset: 0,
         sortBy: {
           column: "name",
-          order: order
-        }
-      })
+          order: "desc",
+        },
+      });
 
       if (error) {
         resError(500, "Error fetching images.");
       }
 
       const imagesInBucket = data
-      .filter(file => file.name !== ".emptyFolderPlaceholder")
-      .map(file => {
-        const { data } = storage.from(bucketName).getPublicUrl(`${route}/${file.name}`);
-        return {
-          name: file.name,
-          url: data.publicUrl
-        }
-      })
+        .filter((file) => file.name !== ".emptyFolderPlaceholder")
+        .map((file) => {
+          const { data } = storage
+            .from(bucketName)
+            .getPublicUrl(`${route}/${file.name}`);
+          return {
+            name: file.name,
+            url: data.publicUrl,
+          };
+        });
 
-      return res.status(200).json(
-        imagesInBucket
-      )
-
+      return res.status(200).json(imagesInBucket);
     } catch (error) {
       responseToError(error as Error, res);
     }
-  }
+  };
 }
