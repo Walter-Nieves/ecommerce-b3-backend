@@ -30,6 +30,7 @@ export async function getAllColor(req: Request, res: Response) {
 
 export async function getAllDeletedColor(req: Request, res: Response) {
   try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const colors = await sql`
             SELECT * FROM COLOR
             WHERE is_deleted = true
@@ -42,9 +43,9 @@ export async function getAllDeletedColor(req: Request, res: Response) {
   }
 }
 
-export async function getColorByHexId(req: Request, res: Response) {
-  const id = validateId(req.params.id);
+export async function getColorById(req: Request, res: Response) {
   try {
+    const id = validateId(req.params.id);
     const colors = await sql`
           SELECT * FROM COLOR
           WHERE id = ${id}
@@ -71,7 +72,7 @@ export async function postColor(req: Request, res: Response) {
 
     const newColor = await sql`
             INSERT INTO COLOR (name, hex_code, slug, sku)
-            VALUES (${color.name}, ${color.hex_code}, ${color.sku}, ${color.slug})
+            VALUES (${color.name}, ${color.hex_code}, ${color.slug}, ${color.sku})
             RETURNING *
         `;
 
@@ -80,7 +81,6 @@ export async function postColor(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
-
 
 export async function putColor(req: Request, res: Response) {
   try {
@@ -110,7 +110,6 @@ export async function putColor(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
-
 
 export async function softDeleteColor(req: Request, res: Response) {
   try {

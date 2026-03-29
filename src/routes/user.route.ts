@@ -15,9 +15,10 @@ import {
   updatePhotoUser,
   updateUser,
   postCheckEmail,
+  updatePasswordAdminUser,
 } from "../controllers/user.controller";
 import { authVerify } from "../middlewares/auth.middleware";
-import { uploadImage } from "../middlewares/file.middleware";
+import { getAllImages, uploadImage } from "../middlewares/file.middleware";
 import { BucketRoutes } from "../types/enums";
 
 const router = Router();
@@ -30,12 +31,13 @@ router.get("/id/:id", authVerify(true), getUserById);
 router.get("/email/deleted/:email", authVerify(true), getDeletedUserByEmail);
 router.get("/email/:email", authVerify(true), getUserByEmail);
 router.get("/me", authVerify(true), getUserMe);
+router.get("/photo", authVerify(true), getAllImages(BucketRoutes.UserImages, "all"));
+router.get("/photo/me", authVerify(true), getAllImages(BucketRoutes.UserImages, "me"));
 
 // CREATE
 router.post(
   "/",
   authVerify(false),
-  uploadImage(BucketRoutes.UserImages),
   createUser,
 );
 
@@ -57,5 +59,6 @@ router.patch(
   updatePhotoUser,
 );
 router.patch("/password/:id", authVerify(true), updatePasswordUser);
+router.patch("/password/admin/:id", authVerify(true), updatePasswordAdminUser);
 
 export default router;

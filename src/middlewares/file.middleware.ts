@@ -4,10 +4,12 @@ import {
   resError,
   responseToError,
   validateBody,
+  validateId,
   validateNumber,
+  validateRoleForActions,
   validateUrl,
 } from "../utils/validations";
-import { BucketRoutes } from "../types/enums";
+import { BucketRoutes, Role } from "../types/enums";
 
 const bucketName = process.env.SUPABASE_BUCKET as string;
 
@@ -30,9 +32,17 @@ export function uploadImage(route: BucketRoutes) {
           return next();
         }
         // Obtener ruta completa del archivo y subirlo a Supabase Storage
-        const fileExtension = file.originalname.split(".").pop();
-        const fileName = `${Date.now()}.${fileExtension}`;
-        const filePath = `${route}/${fileName}`;
+        let filePath: string
+        
+        if (route == BucketRoutes.UserImages) {
+          const fileExtension = file.originalname.split(".").pop();
+          const fileName = `${Date.now()}_${res.locals.user.sub}.${fileExtension}`;
+          filePath = `${route}/${fileName}`;
+        } else {
+          const fileExtension = file.originalname.split(".").pop();
+          const fileName = `${Date.now()}.${fileExtension}`;
+          filePath = `${route}/${fileName}`;
+        }
 
         // Subir el archivo a Supabase Storage
         const { error } = await storage
@@ -62,9 +72,17 @@ export function uploadImage(route: BucketRoutes) {
   };
 }
 
-export function getAllImages(route: BucketRoutes) {
+export function getAllImages(route: BucketRoutes, isFor?: "me" | "all") {
   return async (req: Request, res: Response) => {
     try {
+      if (route == BucketRoutes.UserImages) {
+        if (isFor == "me") {
+          validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Buyer, Role.Seller])
+        }
+        if (isFor == "all") {
+          validateRoleForActions(res.locals.user.role, [Role.Admin])
+        }
+      }
       const { data, error } = await storage.from(bucketName).list(route, {
         limit: 1000,
         offset: 0,
@@ -90,7 +108,16 @@ export function getAllImages(route: BucketRoutes) {
           };
         });
 
-      return res.status(200).json(imagesInBucket);
+      if (route == BucketRoutes.UserImages && isFor == "me") {
+        const me = validateId(res.locals.user.sub)
+        const filteredForMe = imagesInBucket.map((image)=>{
+          if (image.name.includes(me)) return image
+        })
+        return res.status(200).json(filteredForMe);
+      } else {
+        return res.status(200).json(imagesInBucket);
+      }
+
     } catch (error) {
       responseToError(error as Error, res);
     }
