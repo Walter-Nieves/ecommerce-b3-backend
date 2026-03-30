@@ -215,6 +215,42 @@ export async function updateAddress(req: Request, res: Response) {
   }
 }
 
+export async function setDefaultAddress(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Seller,
+      Role.Buyer,
+    ]);
+
+    const userId = validateId(res.locals.user.sub);
+    const addressId = validateId(req.params.id);
+
+    await sql`
+      UPDATE address
+      SET is_default = false
+      WHERE user_id = ${userId}
+    `;
+
+    const updated = await sql`
+      UPDATE address
+      SET is_default = true
+      WHERE id = ${addressId} AND user_id = ${userId}
+      RETURNING *
+    `;
+
+    if (updated.length === 0) {
+      resError(404, "Address no encontrada");
+    }
+
+    res.json(updated[0]);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+
+
 export async function DeleteAddress(req: Request, res: Response) {
   try {
     validateRoleForActions(res.locals.user.role, [
