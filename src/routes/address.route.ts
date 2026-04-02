@@ -8,6 +8,7 @@ import {
   getAllMeAddress,
   getAllUserAddress,
   updateAddress,
+  setDefaultAddress
 } from "../controllers/address.controller";
 
 const router = Router();
@@ -20,6 +21,8 @@ router.get("/:id", authVerify(true), getAddressById);
 router.post("/", authVerify(true), createAddress);
 
 router.put("/:id", authVerify(true), updateAddress);
+
+router.patch("/:id/set-default", authVerify(true), setDefaultAddress);
 
 router.delete("/:id", authVerify(true), DeleteAddress);
 
