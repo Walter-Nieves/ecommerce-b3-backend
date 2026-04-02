@@ -191,7 +191,7 @@ interface Address {
   postal_code: string;
   street_address: string;
   reference: string;
-  is_default?: boolean;
+  is_default: boolean;
 }
 
 export type {
