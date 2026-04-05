@@ -164,7 +164,7 @@ export function validateName(name: unknown): string | never {
 export function validateSlug(
   slug: unknown,
   esIndividual: boolean,
-): string | never {
+ ): string | never {
   if (slug == null) {
     resError(400, "Slug is required");
   }
@@ -211,7 +211,7 @@ export function validateSlug(
 export function validateSku(
   sku: unknown,
   esIndividual: boolean,
-): string | never {
+ ): string | never {
   if (sku == null) {
     resError(400, "SKU is required");
   }
