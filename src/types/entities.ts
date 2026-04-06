@@ -8,7 +8,7 @@ import {
 
 /** Entidad producto
  * @IMPORTANTE El precio se debe manejar en centavos para evitar problemas de precisión con decimales, por lo que el precio base y el precio de la variante se deben almacenar como enteros representando los centavos (por ejemplo, un precio de $199.99 se almacenaría como 19999)
- * @property {number} id - ID del producto
+ * @property {string} id - ID del producto
  * @property {string} name - Nombre del producto mostrable para el usuario
  * @property {string} slug - Slug del producto para uso interno, marcar como único para evitar duplicados
  * @property {string} description - Descripción del producto
@@ -26,11 +26,11 @@ import {
  * @property {Date | null} deleted_at - Fecha de eliminación del producto, null si no ha sido eliminado
  */
 interface Product {
-  id: number;
+  id: string; // tipo uuid
   name: string;
-  slug: string;
+  slug: string; // unico
   description: string;
-  base_price: number;
+  base_price: number; // numeros enteros no decimales
   brand_id: string; // llave foranea tipo uuid a brand
   genre: genre;
   movement_type: movement_type;
@@ -46,7 +46,7 @@ interface Product {
 
 /** Entidad variante de producto
  * @IMPORTANTE El precio se debe manejar en centavos para evitar problemas de precisión con decimales, por lo que el precio base y el precio de la variante se deben almacenar como enteros representando los centavos (por ejemplo, un precio de $199.99 se almacenaría como 19999)
- * @property {number} id - ID de la variante del producto
+ * @property {string} id - ID de la variante del producto uuid
  * @property {number} product_id - ID del producto al que pertenece la variante, referencia a la entidad Producto
  * @property {string} sku - SKU de la variante para uso interno, marcar como único para evitar duplicados
  * @Info('El sku debe tener un formato especifico en el siguiente orden [brand_sku]-[genre_sku]-[movement_sku]-[material_case_sku]-[color_sku], ejemplo: RLX-M-Q-TI-BLK significa RoLeX Male Quartz TItanium BLacK ')
@@ -62,7 +62,7 @@ interface Product {
  * @property {Date | null} deleted_at - Fecha de eliminación de la variante, null si no ha sido eliminada
  */
 interface ProductVariant {
-  id: number;
+  id: string; // uuid
   product_id: number;
   sku: string;
   color_id: string;
@@ -88,29 +88,30 @@ interface Inventory {
 }
 
 /** Entidad review
- * @property {number} product_id - ID del producto al que pertenece la review, referencia a la entidad Producto
- * @property {number} user_id - ID del usuario que hizo la review, referencia a la entidad Usuario
+ * @property {string} product_id - ID del producto al que pertenece la review, referencia a la entidad Producto
+ * @property {string} user_id - ID del usuario que hizo la review, referencia a la entidad Usuario
  * @property {rating} rating - Calificación del producto, valor entre 1 y 5
  * @property {string} comment - Comentario de la review
  * @property {Date} created_at - Fecha de creación de la review
- * @property {Date} updated_at - Fecha de última actualización de la review
- * @property {Date | null} deleted_at - Fecha de eliminación de la review, null si no ha sido eliminada
- * @property {boolean} is_deleted - Indica si la review ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  * @Info('La combinación de product_id y user_id debe ser única, formando una **llave compuesta**')
  */
 interface Review {
-  product_id: number;
-  user_id: number;
+  product_id: string; // uuid
+  user_id: string; // uuid
   rating: rating;
   comment: string;
   created_at: Date;
-  updated_at: Date;
-  deleted_at: Date | null;
-  is_deleted: boolean;
+}
+
+// Arrivoto, usado para saber que reseñas fueron utiles
+interface Upvote {
+  review_product_id: string; // uuid
+  review_user_id: string; // uuid
+  user_id: string; // uuid
 }
 
 /** Entidad ProductImage
- * @property {number} id - ID de la imagen del producto
+ * @property {string} id - ID de la imagen del producto
  * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
  * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
  * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
@@ -118,7 +119,7 @@ interface Review {
  * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  */
 interface ProductImage {
-  id: number;
+  id: string; // uuid
   product_id: number;
   image_url: string;
   is_primary: boolean;
@@ -126,8 +127,25 @@ interface ProductImage {
   is_deleted: boolean;
 }
 
+/** Entidad ProductVariantImage
+ * @property {string} id - ID de la imagen de la variante del producto
+ * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
+ * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
+ * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
+ * @property {number} sort_order - Orden de clasificación de la imagen para mostrarla en la galería del producto
+ * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
+ */
+interface ProductVariantImage {
+  id: string; // uuid
+  product_variant_id: number;
+  image_url: string;
+  is_primary: boolean;
+  sort_order: number;
+  is_deleted: boolean;
+}
+
 /* =========================================
-   PAYMENT METODO DE PAGO
+  PAYMENT METODO DE PAGO
 ========================================= */
 interface PaymentMetodoPago {
   id: string; // uuid
@@ -175,8 +193,6 @@ interface User {
   password_hash: string;
   phone: string;
   photo_url?: string | null;
-  is_active?: boolean;
-  email_verified?: boolean;
   role: Role;
   created_at?: Date;
   updated_at?: Date;
@@ -185,7 +201,7 @@ interface User {
 }
 
 interface Address {
-  id: string;
+  id?: string;
   user_id: string;
   country: string;
   state: string;
@@ -202,10 +218,12 @@ export type {
   Inventory,
   Review,
   ProductImage,
+  ProductVariantImage,
   PaymentMetodoPago,
   PaymentPedido,
   PaymentCarrito,
   PaymentSeguimientoActual,
   User,
   Address,
+  Upvote
 };

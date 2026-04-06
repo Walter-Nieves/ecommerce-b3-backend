@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { forceDeleteColor, getAllColor, getAllDeletedColor, getColorByHexId, postColor, putColor, restoreColor, softDeleteColor } from "../controllers/color.controller";
+import { forceDeleteColor, getAllColor, getAllDeletedColor, getColorById, postColor, putColor, restoreColor, softDeleteColor } from "../controllers/color.controller";
 import { authVerify } from "../middlewares/auth.middleware";
 
 const router = Router()
 
 router.get("/all", getAllColor);
-router.get("/all-deleted", getAllDeletedColor);
-router.get("/:id", getColorByHexId);
+router.get("/all-deleted", authVerify(true), getAllDeletedColor);
+router.get("/:id", getColorById);
 
 router.post("/", authVerify(true), postColor)
 

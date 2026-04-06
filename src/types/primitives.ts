@@ -11,9 +11,11 @@ export const waterproofness_values = [
   "DIVER",
 ] as const;
 
-export type waterproofness = (typeof waterproofness_values)[number];
+type waterproofness = (typeof waterproofness_values)[number];
 
-type stock_state = "in_stock" | "out_of_stock" | "pre_order";
+export const stock_state_values = ["in_stock", "out_of_stock", "pre_order"];
+
+type stock_state = (typeof stock_state_values)[number];
 
 type PaymentOrderStatus =
   | "pending" // pendiente
@@ -29,12 +31,10 @@ type PaymentProviderType = "stripe" | "paypal" | "mercadopago" | "wompi";
 /** Tipo primitivo Tag
  * @property {string} id - ID del tag
  * @property {string} name - Nombre del tag mostrable para el usuario
- * @property {boolean} is_deleted - Indica si el tag ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Tag {
   id?: string; //uuid
   name: string;
-  is_deleted?: boolean;
 }
 
 /** Tipo primitivo Material
@@ -132,4 +132,5 @@ export type {
   Brand,
   Category,
   UserPayload,
+  waterproofness,
 };

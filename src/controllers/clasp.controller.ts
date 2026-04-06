@@ -3,6 +3,7 @@ import { sql } from "../db/supabase";
 import { Role } from "../types/enums";
 import { Clasp } from "../types/primitives";
 import {
+  resError,
   responseToError,
   validateId,
   validateName,
@@ -105,25 +106,6 @@ export async function updateClasp(req: Request, res: Response) {
   }
 }
 
-/* ===============================
-   SOFT DELETE
-================================ */
-export async function softDeleteClasp(req: Request, res: Response) {
-  try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
-    const id = validateId(req.params.id);
-
-    await sql`
-      UPDATE clasp
-      SET is_deleted = true
-      WHERE id = ${id}
-    `;
-
-    res.json({ message: "Clasp eliminada" });
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
 
 /* ===============================
    RESTORE
@@ -133,11 +115,16 @@ export async function restoreClasp(req: Request, res: Response) {
     validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
     const id = validateId(req.params.id);
 
-    await sql`
+    const restoredClasp = await sql`
       UPDATE clasp
       SET is_deleted = false
       WHERE id = ${id}
+      RETURNING *
     `;
+
+    if (restoredClasp.length === 0) {
+      resError(404, "Material no encontrado");
+    }
 
     res.json({ message: "Clasp restaurada" });
   } catch (error) {
@@ -159,6 +146,27 @@ export async function forceDeleteClasp(req: Request, res: Response) {
     `;
 
     res.json({ message: "Clasp eliminada permanentemente" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+
+/* ===============================
+   SOFT DELETE
+================================ */
+export async function softDeleteClasp(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const id = validateId(req.params.id);
+
+    await sql`
+      UPDATE clasp
+      SET is_deleted = true
+      WHERE id = ${id}
+    `;
+
+    res.json({ message: "Clasp eliminada" });
   } catch (error) {
     return responseToError(error as Error, res);
   }

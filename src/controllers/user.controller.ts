@@ -225,7 +225,6 @@ export const createUser = async (
     const password = validatePassword(req.body.password);
     const password_hash = await hashPassword(password);
     const phone = validatePhone(req.body.phone);
-    const photo_url = validateUrl(req.body.imageUrl);
 
     let role: Role;
 
@@ -241,11 +240,8 @@ export const createUser = async (
       email,
       password_hash,
       phone,
-      photo_url,
       role,
     };
-
-    console.log("antes de");
 
     const [newUser] = await sql<User[]>`
       INSERT INTO users (
@@ -254,7 +250,6 @@ export const createUser = async (
         email,
         password_hash,
         phone,
-        photo_url,
         role,
         created_at,
         updated_at
@@ -265,14 +260,12 @@ export const createUser = async (
         ${user.email},
         ${user.password_hash},
         ${user.phone},
-        ${user.photo_url ?? null},
         ${user.role},
         NOW(),
         NOW()
       )
       RETURNING *
     `;
-    console.log("despues de");
 
     if (!newUser) {
       resError(500, "User creation failed");
@@ -482,6 +475,11 @@ export const updatePasswordUser = async (
   res: Response,
 ): Promise<Response> => {
   try {
+    validateRoleForActions(res.locals.user.role, [
+      Role.Admin,
+      Role.Buyer,
+      Role.Seller,
+    ]);
     validateBody(req.body, false);
 
     const id = validateId(req.params.id);
@@ -506,6 +504,48 @@ export const updatePasswordUser = async (
     await validatePasswordHash(validatedCurrentPassword, user.password_hash);
 
     //hashear nueva contraseña
+    const newPasswordHash = await hashPassword(validatedNewPassword);
+
+    await sql`
+      UPDATE users
+      SET
+        password_hash = ${newPasswordHash},
+        updated_at = NOW()
+      WHERE id = ${id}
+    `;
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+};
+export const updatePasswordAdminUser = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin]);
+    validateBody(req.body, false);
+
+    const id = validateId(req.params.id);
+
+    const [user] = await sql<User[]>`
+      SELECT *
+      FROM users
+      WHERE id = ${id}
+      AND is_deleted = false
+      LIMIT 1
+    `;
+
+    if (!user) {
+      resError(404, "User not found");
+    }
+
+    const { new_password } = req.body;
+
+    const validatedNewPassword = validatePassword(new_password);
     const newPasswordHash = await hashPassword(validatedNewPassword);
 
     await sql`

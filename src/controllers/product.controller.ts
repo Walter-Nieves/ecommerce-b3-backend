@@ -6,8 +6,24 @@ import {
   validateName,
   validateSlug,
   validateBody,
-  resError
+  resError,
 } from "../utils/validations";
+import { movement_type, genre } from "../types/enums";
+import { stock_state_values, type stock_state } from "../types/primitives";
+
+type ProductBody = {
+  name: string;
+  slug: string;
+  description: string;
+  base_price: number;
+  brand_id: string;
+  genre: genre;
+  movement_type: movement_type;
+  waterproofness: string;
+  case_material_id: string;
+  crystal_material_id: string;
+  stock_state: stock_state;
+};
 
 /* ===============================
    GET ALL (active)
@@ -54,7 +70,7 @@ export async function getProductById(req: Request, res: Response) {
     `;
 
     if (product.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      resError(404, "Product not found");
     }
 
     res.json(product[0]);
@@ -76,7 +92,7 @@ export async function getDeletedProductById(req: Request, res: Response) {
     `;
 
     if (product.length === 0) {
-      return res.status(404).json({ error: "Deleted product not found" });
+      resError(404, "Delete Product not found");
     }
 
     res.json(product[0]);
@@ -85,10 +101,11 @@ export async function getDeletedProductById(req: Request, res: Response) {
   }
 }
 
-// buscar productos y variantes
+/* ===============================
+   SEARCH
+================================ */
 export async function searchProducts(req: Request, res: Response) {
   try {
-
     const {
       brand,
       category,
@@ -98,7 +115,7 @@ export async function searchProducts(req: Request, res: Response) {
       casematerials,
       crystalmaterials,
       typemovements,
-      waterproofness
+      waterproofness,
     } = req.query;
 
     const conditions: string[] = [];
@@ -123,9 +140,7 @@ export async function searchProducts(req: Request, res: Response) {
     addFilter("wp.name", waterproofness as string);
 
     const whereClause =
-      conditions.length > 0
-        ? "AND " + conditions.join(" AND ")
-        : "";
+      conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
 
     const query = `
       SELECT p.*
@@ -147,7 +162,6 @@ export async function searchProducts(req: Request, res: Response) {
     const result = await sql.unsafe(query, values);
 
     res.json(result);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -166,13 +180,13 @@ export async function createProduct(req: Request, res: Response) {
       description,
       base_price,
       brand_id,
-      genre,
-      movement_type,
+      genre: genreValue,
+      movement_type: movementValue,
       waterproofness,
       case_material_id,
       crystal_material_id,
-      stock_state,
-    } = req.body;
+      stock_state: stockValue,
+    } = req.body as ProductBody;
 
     const validatedName = validateName(name);
     const validatedSlug = validateSlug(slug, false);
@@ -181,20 +195,34 @@ export async function createProduct(req: Request, res: Response) {
       resError(400, "Description must be a string");
     }
 
-    if (typeof base_price !== "number" || base_price <= 0) {
-      resError(400, "Base price must be a positive number");
+    if (!Number.isInteger(base_price) || base_price <= 0) {
+      resError(400, "Base price must be a positive integer");
     }
 
-    if (typeof brand_id !== "number") {
-      resError(400, "Brand ID must be a number");
+    if (typeof brand_id !== "string") {
+      resError(400, "Brand ID must be a UUID string");
     }
 
-    if (typeof case_material_id !== "number") {
-      resError(400, "Case material ID must be a number");
+    if (typeof case_material_id !== "string") {
+      resError(400, "Case material ID must be a UUID string");
     }
 
-    if (typeof crystal_material_id !== "number") {
-      resError(400, "Crystal material ID must be a number");
+    if (typeof crystal_material_id !== "string") {
+      resError(400, "Crystal material ID must be a UUID string");
+    }
+
+    if (!Object.values(genre).includes(genreValue)) {
+      resError(400, "Invalid genre");
+    }
+
+    if (!Object.values(movement_type).includes(movementValue)) {
+      resError(400, "Invalid movement type");
+    }
+
+    const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
+
+    if (!validStockStates.includes(stockValue)) {
+      resError(400, "Invalid stock state");
     }
 
     const newProduct = await sql`
@@ -217,18 +245,17 @@ export async function createProduct(req: Request, res: Response) {
         ${description},
         ${base_price},
         ${brand_id},
-        ${genre},
-        ${movement_type},
+        ${genreValue},
+        ${movementValue},
         ${waterproofness},
         ${case_material_id},
         ${crystal_material_id},
-        ${stock_state}
+        ${stockValue}
       )
       RETURNING *
     `;
 
     res.status(201).json(newProduct[0]);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -249,13 +276,13 @@ export async function updateProduct(req: Request, res: Response) {
       description,
       base_price,
       brand_id,
-      genre,
-      movement_type,
+      genre: genreValue,
+      movement_type: movementValue,
       waterproofness,
       case_material_id,
       crystal_material_id,
-      stock_state,
-    } = req.body;
+      stock_state: stockValue,
+    } = req.body as ProductBody;
 
     const validatedName = validateName(name);
     const validatedSlug = validateSlug(slug, false);
@@ -264,20 +291,32 @@ export async function updateProduct(req: Request, res: Response) {
       resError(400, "Description must be a string");
     }
 
-    if (typeof base_price !== "number" || base_price <= 0) {
-      resError(400, "Base price must be a positive number");
+    if (!Number.isInteger(base_price) || base_price <= 0) {
+      resError(400, "Base price must be a positive integer");
     }
 
-    if (typeof brand_id !== "number") {
-      resError(400, "Brand ID must be a number");
+    if (typeof brand_id !== "string") {
+      resError(400, "Brand ID must be a UUID string");
     }
 
-    if (typeof case_material_id !== "number") {
-      resError(400, "Case material ID must be a number");
+    if (typeof case_material_id !== "string") {
+      resError(400, "Case material ID must be a UUID string");
     }
 
-    if (typeof crystal_material_id !== "number") {
-      resError(400, "Crystal material ID must be a number");
+    if (typeof crystal_material_id !== "string") {
+      resError(400, "Crystal material ID must be a UUID string");
+    }
+
+    if (!Object.values(genre).includes(genreValue)) {
+      resError(400, "Invalid genre");
+    }
+
+    if (!Object.values(movement_type).includes(movementValue)) {
+      resError(400, "Invalid movement type");
+    }
+
+    if (!stock_state_values.includes(stockValue)) {
+      resError(400, "Invalid stock state");
     }
 
     const updated = await sql`
@@ -288,23 +327,22 @@ export async function updateProduct(req: Request, res: Response) {
         description = ${description},
         base_price = ${base_price},
         brand_id = ${brand_id},
-        genre = ${genre},
-        movement_type = ${movement_type},
+        genre = ${genreValue},
+        movement_type = ${movementValue},
         waterproofness = ${waterproofness},
         case_material_id = ${case_material_id},
         crystal_material_id = ${crystal_material_id},
-        stock_state = ${stock_state},
+        stock_state = ${stockValue},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
     `;
 
     if (updated.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+      resError(404, "Product not found");
     }
 
     res.json(updated[0]);
-
   } catch (error) {
     return responseToError(error as Error, res);
   }
