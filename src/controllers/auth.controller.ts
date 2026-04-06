@@ -1,7 +1,11 @@
-import { Request, Response } from "express";
-import { User } from "../types/entities";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
+import { Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { CODE_EXPIRATION_MS, verificationCodes } from "../db/emailCheckStore";
+import { sql } from "../db/supabase";
+import { User } from "../types/entities";
+import { UserPayload } from "../types/primitives";
+import { transporter } from "../utils/mailer";
 import {
   hashPassword,
   resError,
@@ -13,10 +17,6 @@ import {
   validatePasswordHash,
   validateToken,
 } from "../utils/validations";
-import { sql } from "../db/supabase";
-import { UserPayload } from "../types/primitives";
-import { CODE_EXPIRATION_MS, verificationCodes } from "../db/emailCheckStore";
-import { transporter } from "../utils/mailer";
 
 dotenv.config();
 
