@@ -31,12 +31,10 @@ type PaymentProviderType = "stripe" | "paypal" | "mercadopago" | "wompi";
 /** Tipo primitivo Tag
  * @property {string} id - ID del tag
  * @property {string} name - Nombre del tag mostrable para el usuario
- * @property {boolean} is_deleted - Indica si el tag ha sido eliminado lógicamente sin eliminarlo físicamente de la base de datos
  */
 interface Tag {
   id?: string; //uuid
   name: string;
-  is_deleted?: boolean;
 }
 
 /** Tipo primitivo Material
