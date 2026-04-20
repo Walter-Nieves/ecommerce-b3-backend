@@ -60,7 +60,7 @@ export function validateRoleForActions(
   expectedRole: Role[],
 ): void | never {
   if (!expectedRole.includes(role as Role)) {
-    resError(400, "Role not allowed for this action");
+    resError(401, "Role not allowed for this action");
   }
 }
 
@@ -75,7 +75,7 @@ export function validateRole(
     resError(400, "Invalid role");
   }
   if (!expectedRole.includes(role as Role)) {
-    resError(400, "Role not allowed for this action");
+    resError(401, "Role not allowed for this action");
   }
   return role as Role;
 }
