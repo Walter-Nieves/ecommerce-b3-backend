@@ -42,6 +42,11 @@ interface Product {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  image_1: string | null;
+  image_2: string | null;
+  image_3: string | null;
+  image_4: string | null;
+  image_5: string | null;
 }
 
 /** Entidad variante de producto
@@ -74,17 +79,20 @@ interface ProductVariant {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  image_1: string | null;
+  image_2: string | null;
+  image_3: string | null;
 }
 
 /** Entidad inventario
- * @property {number} variant_id - ID de la variante del producto, marcar como único para evitar duplicados, referencia a la entidad ProductVariant
- * @property {number} quantity - Cantidad total del inventario, visible para el usuario, se actualiza al ser pedido
- * @property {number} real_quantity - Cantidad real disponible en el inventario, no visible para el usuario, se actualiza al salir del almacen y al recibir nuevos productos
+ * @property {string} variant_id - ID de la variante del producto, marcar como único para evitar duplicados, referencia a la entidad ProductVariant
+ * @property {number} user_quantity - Cantidad total del inventario, visible para el usuario, se actualiza al ser pedido
+ * @property {number} stock_quantity - Cantidad real disponible en el inventario, no visible para el usuario, se actualiza al salir del almacen y al recibir nuevos productos
  */
 interface Inventory {
-  variant_id: number;
-  quantity: number;
-  real_quantity: number;
+  variant_id: string; // uuid
+  user_quantity: number;
+  stock_quantity: number;
 }
 
 /** Entidad review
@@ -101,47 +109,6 @@ interface Review {
   rating: rating;
   comment: string;
   created_at: Date;
-}
-
-// Arrivoto, usado para saber que reseñas fueron utiles
-interface Upvote {
-  review_product_id: string; // uuid
-  review_user_id: string; // uuid
-  user_id: string; // uuid
-}
-
-/** Entidad ProductImage
- * @property {string} id - ID de la imagen del producto
- * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
- * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
- * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
- * @property {number} sort_order - Orden de clasificación de la imagen para mostrarla en la galería del producto
- * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
- */
-interface ProductImage {
-  id: string; // uuid
-  product_id: number;
-  image_url: string;
-  is_primary: boolean;
-  sort_order: number;
-  is_deleted: boolean;
-}
-
-/** Entidad ProductVariantImage
- * @property {string} id - ID de la imagen de la variante del producto
- * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
- * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
- * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
- * @property {number} sort_order - Orden de clasificación de la imagen para mostrarla en la galería del producto
- * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
- */
-interface ProductVariantImage {
-  id: string; // uuid
-  product_variant_id: number;
-  image_url: string;
-  is_primary: boolean;
-  sort_order: number;
-  is_deleted: boolean;
 }
 
 /* =========================================
@@ -217,13 +184,10 @@ export type {
   ProductVariant,
   Inventory,
   Review,
-  ProductImage,
-  ProductVariantImage,
   PaymentMetodoPago,
   PaymentPedido,
   PaymentCarrito,
   PaymentSeguimientoActual,
   User,
-  Address,
-  Upvote
+  Address
 };

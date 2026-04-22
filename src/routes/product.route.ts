@@ -10,7 +10,6 @@ import {
   softDeleteProduct,
   forceDeleteProduct,
   restoreProduct,
-  searchProducts,
 
 } from "../controllers/product.controller";
 
@@ -18,10 +17,11 @@ const router = Router();
 
 /* GET */
 router.get("/all", getAllProducts);
-router.get("/deleted", getDeletedProducts);
-router.get("/search", searchProducts);
-router.get("/:id", getProductById);
-router.get("/deleted/:id", getDeletedProductById);
+router.get("/all/deleted", getDeletedProducts);
+router.get("/id/:id", getProductById);
+router.get("/id/deleted/:id", getDeletedProductById);
+// router.get("/slug/:slug", getProductBySlug);
+// router.get("/slug/deleted/:id", getDeletedProductBySlug);
 
 /* POST */
 router.post("/", createProduct);

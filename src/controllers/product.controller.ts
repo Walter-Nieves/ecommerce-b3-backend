@@ -104,68 +104,68 @@ export async function getDeletedProductById(req: Request, res: Response) {
 /* ===============================
    SEARCH
 ================================ */
-export async function searchProducts(req: Request, res: Response) {
-  try {
-    const {
-      brand,
-      category,
-      color,
-      clasp,
-      strapmaterials,
-      casematerials,
-      crystalmaterials,
-      typemovements,
-      waterproofness,
-    } = req.query;
+// export async function searchProducts(req: Request, res: Response) {
+//   try {
+//     const {
+//       brand,
+//       category,
+//       color,
+//       clasp,
+//       strapmaterials,
+//       casematerials,
+//       crystalmaterials,
+//       typemovements,
+//       waterproofness,
+//     } = req.query;
 
-    const conditions: string[] = [];
-    const values: any[] = [];
+//     const conditions: string[] = [];
+//     const values: any[] = [];
 
-    const addFilter = (field: string, queryValue?: string) => {
-      if (queryValue) {
-        const items = queryValue.split("-");
-        values.push(items);
-        conditions.push(`${field} = ANY($${values.length})`);
-      }
-    };
+//     const addFilter = (field: string, queryValue?: string) => {
+//       if (queryValue) {
+//         const items = queryValue.split("-");
+//         values.push(items);
+//         conditions.push(`${field} = ANY($${values.length})`);
+//       }
+//     };
 
-    addFilter("b.slug", brand as string);
-    addFilter("c.slug", category as string);
-    addFilter("co.slug", color as string);
-    addFilter("cl.slug", clasp as string);
-    addFilter("sm.slug", strapmaterials as string);
-    addFilter("cm.slug", casematerials as string);
-    addFilter("cr.slug", crystalmaterials as string);
-    addFilter("tm.slug", typemovements as string);
-    addFilter("wp.name", waterproofness as string);
+//     addFilter("b.slug", brand as string);
+//     addFilter("c.slug", category as string);
+//     addFilter("co.slug", color as string);
+//     addFilter("cl.slug", clasp as string);
+//     addFilter("sm.slug", strapmaterials as string);
+//     addFilter("cm.slug", casematerials as string);
+//     addFilter("cr.slug", crystalmaterials as string);
+//     addFilter("tm.slug", typemovements as string);
+//     addFilter("wp.name", waterproofness as string);
 
-    const whereClause =
-      conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
+//     const whereClause =
+//       conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
 
-    const query = `
-      SELECT p.*
-      FROM product p
-      LEFT JOIN brand b ON p.brand_id = b.id
-      LEFT JOIN category c ON p.category_id = c.id
-      LEFT JOIN color co ON p.color_id = co.id
-      LEFT JOIN clasp cl ON p.clasp_id = cl.id
-      LEFT JOIN material sm ON p.strap_material_id = sm.id
-      LEFT JOIN material cm ON p.case_material_id = cm.id
-      LEFT JOIN material cr ON p.crystal_material_id = cr.id
-      LEFT JOIN movement_type tm ON p.movement_type = tm.slug
-      LEFT JOIN waterproofness wp ON p.waterproofness = wp.name
-      WHERE p.is_deleted = false
-      ${whereClause}
-      ORDER BY p.created_at DESC
-    `;
+//     const query = `
+//       SELECT p.*
+//       FROM product p
+//       LEFT JOIN brand b ON p.brand_id = b.id
+//       LEFT JOIN category c ON p.category_id = c.id
+//       LEFT JOIN color co ON p.color_id = co.id
+//       LEFT JOIN clasp cl ON p.clasp_id = cl.id
+//       LEFT JOIN material sm ON p.strap_material_id = sm.id
+//       LEFT JOIN material cm ON p.case_material_id = cm.id
+//       LEFT JOIN material cr ON p.crystal_material_id = cr.id
+//       LEFT JOIN movement_type tm ON p.movement_type = tm.slug
+//       LEFT JOIN waterproofness wp ON p.waterproofness = wp.name
+//       WHERE p.is_deleted = false
+//       ${whereClause}
+//       ORDER BY p.created_at DESC
+//     `;
 
-    const result = await sql.unsafe(query, values);
+//     const result = await sql.unsafe(query, values);
 
-    res.json(result);
-  } catch (error) {
-    return responseToError(error as Error, res);
-  }
-}
+//     res.json(result);
+//   } catch (error) {
+//     return responseToError(error as Error, res);
+//   }
+// }
 
 /* ===============================
    CREATE
@@ -184,8 +184,7 @@ export async function createProduct(req: Request, res: Response) {
       movement_type: movementValue,
       waterproofness,
       case_material_id,
-      crystal_material_id,
-      stock_state: stockValue,
+      crystal_material_id
     } = req.body as ProductBody;
 
     const validatedName = validateName(name);
@@ -221,9 +220,9 @@ export async function createProduct(req: Request, res: Response) {
 
     const validStockStates = ["in_stock", "out_of_stock", "pre_order"];
 
-    if (!validStockStates.includes(stockValue)) {
-      resError(400, "Invalid stock state");
-    }
+    // if (!validStockStates.includes(stockValue)) {
+    //   resError(400, "Invalid stock state");
+    // }
 
     const newProduct = await sql`
       INSERT INTO product (
@@ -237,7 +236,6 @@ export async function createProduct(req: Request, res: Response) {
         waterproofness,
         case_material_id,
         crystal_material_id,
-        stock_state
       )
       VALUES (
         ${validatedName},
@@ -250,7 +248,6 @@ export async function createProduct(req: Request, res: Response) {
         ${waterproofness},
         ${case_material_id},
         ${crystal_material_id},
-        ${stockValue}
       )
       RETURNING *
     `;
