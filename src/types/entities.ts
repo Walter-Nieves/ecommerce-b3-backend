@@ -31,22 +31,22 @@ interface Product {
   slug: string; // unico
   description: string;
   base_price: number; // numeros enteros no decimales
-  brand_id: string; // llave foranea tipo uuid a brand
+  brand_id: string | null; // llave foranea tipo uuid a brand
   genre: genre;
   movement_type: movement_type;
   waterproofness: waterproofness;
-  case_material_id: string; // llave foranea tipo uuid a material
-  crystal_material_id: string; // llave foranea tipo uuid a material
+  case_material_id: string | null; // llave foranea tipo uuid a material
+  crystal_material_id: string | null; // llave foranea tipo uuid a material
   stock_state: stock_state;
   is_deleted: boolean; // por defecto false
   created_at: Date;
   updated_at: Date;
-  deleted_at: Date | null;
-  image_1: string | null;
-  image_2: string | null;
-  image_3: string | null;
-  image_4: string | null;
-  image_5: string | null;
+  deleted_at?: Date | null;
+  image_1?: string | null;
+  image_2?: string | null;
+  image_3?: string | null;
+  image_4?: string | null;
+  image_5?: string | null;
 }
 
 /** Entidad variante de producto

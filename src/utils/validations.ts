@@ -106,20 +106,20 @@ export function validateHexCode(hex_code: unknown): string | never {
   return hex_code.startsWith("#") ? hex_code.substring(1) : hex_code;
 }
 
-export function validateId(id: unknown): string | never {
+export function validateId(id: unknown, fieldName: string = "Id"): string | never {
   if (id == null) {
-    resError(400, "Id is required");
+    resError(400, `${fieldName} is required`);
   }
 
   if (typeof id !== "string") {
-    resError(400, "Id must be a string");
+    resError(400, `${fieldName} must be a string`);
   }
 
   // Valid UUID v4
   const uuidV4Valid = uuid.validate(id);
 
   if (!uuidV4Valid) {
-    resError(400, "Invalid UUID format");
+    resError(400, `Invalid UUID format for ${fieldName}`);
   }
 
   return id;
@@ -133,7 +133,7 @@ export function sanitizeInput(input: string): string {
     .normalize("NFC"); //mantiene acentos correctamente
 }
 
-export function validateName(name: unknown): string | never {
+export function validateName(name: unknown, isProductName: boolean = false): string | never {
   if (name == null) {
     resError(400, "Name is required");
   }
@@ -148,8 +148,8 @@ export function validateName(name: unknown): string | never {
     resError(400, "Name must be at least 2 characters long");
   }
 
-  if (trimmedName.length > 20) {
-    resError(400, "Name cannot exceed 20 characters");
+  if (trimmedName.length > (isProductName ? 60 : 20)) {
+    resError(400, `Name cannot exceed ${isProductName ? 60 : 20} characters`);
   }
 
   // los nombres si tienen caracteres especiales
@@ -279,24 +279,25 @@ export function validateUrl(url: unknown): string | null | never {
 
 export function validateNumber(
   number: unknown,
+  fieldName: string,
   type: "int" | "float",
   from: number,
   to: number,
 ): number | never {
   if (number == null) {
-    resError(400, "Number is required");
+    resError(400, `${fieldName} is required`);
   }
   if (typeof number !== "number") {
-    resError(400, "Value must be a number");
+    resError(400, `${fieldName} must be a number`);
   }
   if (type === "int" && !Number.isInteger(number)) {
-    resError(400, "Value must be an integer");
+    resError(400, `${fieldName} must be an integer`);
   }
   if (type === "float" && Number.isInteger(number)) {
-    resError(400, "Value must be a float");
+    resError(400, `${fieldName} must be a float`);
   }
   if (number < from || number > to) {
-    resError(400, `Number must be between ${from} and ${to}`);
+    resError(400, `${fieldName} must be between ${from} and ${to}`);
   }
   return number;
 }

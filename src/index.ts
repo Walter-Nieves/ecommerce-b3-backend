@@ -13,6 +13,7 @@ import cookieParser from "cookie-parser";
 import auth from "./routes/auth.route";
 import address from "./routes/address.route";
 import primitives from "./routes/primitves.route";
+import product from "./routes/product.route";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/user", user);
 app.use("/api/primitives", primitives);
 app.use("/auth", auth);
 app.use("/api/address", address)
+app.use("/api/product", product)
 
 const PORT = Number(process.env.PORT ?? 3000);
 
