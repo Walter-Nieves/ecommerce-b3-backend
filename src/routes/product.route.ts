@@ -14,6 +14,7 @@ import {
   getDeletedProductBySlug,
   uploadProductImage,
   updateImageProduct,
+  checkProductSlug,
 
 } from "../controllers/product.controller";
 import { authVerify } from "../middlewares/auth.middleware";
@@ -33,6 +34,9 @@ router.get("/slug/deleted/:slug", authVerify(true), getDeletedProductBySlug);
 
 /* POST */
 router.post("/", authVerify(true), createProduct);
+
+/* POST */
+router.post("/check-slug", authVerify(true), checkProductSlug);
 
 /* Upload images */
 router.post("/upload", authVerify(true), uploadImage(BucketRoutes.ProductImages), uploadProductImage);

@@ -205,6 +205,25 @@ export async function getDeletedProductBySlug(req: Request, res: Response) {
 //   }
 // }
 
+export async function checkProductSlug(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    validateBody(req.body, false);
+    const slug = validateSlug(req.body.slug, false);
+
+    const allSlugs = await sql<{slug: string}[]>`SELECT slug FROM product`;
+
+    console.log("Existing slugs:", allSlugs);
+
+    if (allSlugs.some(p => p.slug === slug)) {
+      resError(400, "Slug already exists");
+    }
+    res.status(200).json({ message: "Slug is available" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
 /* ===============================
    CREATE
 ================================ */
