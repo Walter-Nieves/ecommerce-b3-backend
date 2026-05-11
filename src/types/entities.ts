@@ -107,8 +107,13 @@ interface Review {
   product_id: string; // uuid
   user_id: string; // uuid
   rating: rating;
-  comment: string;
+  comment: string | null;
   created_at: Date;
+}
+
+
+interface ReviewWithUser extends Review {
+  user_name: string;
 }
 
 /* =========================================
@@ -184,6 +189,7 @@ export type {
   ProductVariant,
   Inventory,
   Review,
+  ReviewWithUser,
   PaymentMetodoPago,
   PaymentPedido,
   PaymentCarrito,
