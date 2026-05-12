@@ -43,7 +43,7 @@ app.use("/api/primitives", primitives);
 app.use("/auth", auth);
 app.use("/api/address", address)
 app.use("/api/product", product)
-app.use("/api/reviews", reviewRoute);
+app.use("/api/review", reviewRoute);
 
 const PORT = Number(process.env.PORT ?? 3000);
 
