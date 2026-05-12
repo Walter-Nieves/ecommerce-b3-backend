@@ -1,23 +1,23 @@
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
 import { User } from "../types/entities";
+import { Role } from "../types/enums";
+import { UserPayload } from "../types/primitives";
 import {
   hashPassword,
   resError,
   responseToError,
+  validateBody,
   validateEmail,
   validateId,
   validatePassword,
+  validatePasswordHash,
   validatePhone,
-  validateSimpleName,
-  validateUrl,
-  validateBody,
   validateRole,
   validateRoleForActions,
-  validatePasswordHash,
+  validateSimpleName,
+  validateUrl,
 } from "../utils/validations";
-import { Role } from "../types/enums";
-import { UserPayload } from "../types/primitives";
 
 type SafeUser = Omit<User, "password_hash">;
 
@@ -601,7 +601,7 @@ export const updatePhotoUser = async (
       resError(500, "Photo update failed");
     }
 
-    return res.status(200).json({ message: "Photo updated successfully" });
+    return res.status(201).json({ photo_url: updatedUser.photo_url });
   } catch (error) {
     return responseToError(error as Error, res);
   }
