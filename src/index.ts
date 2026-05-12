@@ -14,6 +14,8 @@ import auth from "./routes/auth.route";
 import address from "./routes/address.route";
 import primitives from "./routes/primitves.route";
 import product from "./routes/product.route";
+import reviewRoute from "./routes/review.route";
+
 
 dotenv.config();
 
@@ -41,6 +43,7 @@ app.use("/api/primitives", primitives);
 app.use("/auth", auth);
 app.use("/api/address", address)
 app.use("/api/product", product)
+app.use("/api/reviews", reviewRoute);
 
 const PORT = Number(process.env.PORT ?? 3000);
 
