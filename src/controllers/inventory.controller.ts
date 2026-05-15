@@ -7,20 +7,18 @@ import {
     responseToError,
     validateBody,
     validateId,
+    validateNumber,
     validateRoleForActions,
 } from "../utils/validations";
 
-
 // Obtener inventario de una variante
-export async function getInventoryByVariantId(
-    req: Request,
-    res: Response
-) {
+export async function getInventoryByVariantId(req: Request, res: Response) {
     try {
-        validateRoleForActions(
-            res.locals.user.role,
-            [Role.Admin, Role.Seller, Role.Buyer]
-        );
+        validateRoleForActions(res.locals.user.role, [
+            Role.Admin,
+            Role.Seller,
+            Role.Buyer,
+        ]);
 
         const variant_id = validateId(req.params.variant_id);
 
@@ -34,51 +32,35 @@ export async function getInventoryByVariantId(
         }
 
         res.json(inventory[0]);
-
     } catch (error) {
         return responseToError(error as Error, res);
     }
 }
 
-
 // Crear inventario
-export async function createInventory(
-    req: Request,
-    res: Response
-) {
+export async function createInventory(req: Request, res: Response) {
     try {
-        validateRoleForActions(
-            res.locals.user.role,
-            [Role.Admin, Role.Seller]
-        );
+        validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
 
         validateBody(req.body, false);
 
-        const variant_id = validateId(
-            req.body.variant_id
+        const variant_id = validateId(req.body.variant_id);
+
+        const stock_quantity = validateNumber(
+            req.body.stock_quantity,
+            "Stock Quantity",
+            "int",
+            0,
+            9999,
         );
 
-        const stock_quantity = Number(
-            req.body.stock_quantity
+        const user_quantity = validateNumber(
+            req.body.user_quantity,
+            "User Quantity",
+            "int",
+            0,
+            9999,
         );
-
-        const user_quantity = Number(
-            req.body.user_quantity
-        );
-
-        if (
-            isNaN(stock_quantity) ||
-            stock_quantity < 0
-        ) {
-            resError(400, "Invalid stock quantity");
-        }
-
-        if (
-            isNaN(user_quantity) ||
-            user_quantity < 0
-        ) {
-            resError(400, "Invalid user quantity");
-        }
 
         const exists = await sql`
       SELECT variant_id FROM inventory
@@ -104,38 +86,28 @@ export async function createInventory(
     `;
 
         res.status(201).json(created[0]);
-
     } catch (error) {
         return responseToError(error as Error, res);
     }
 }
-
 
 // Agregar stock
-export async function addInventory(
-    req: Request,
-    res: Response
-) {
+export async function addInventory(req: Request, res: Response) {
     try {
-        validateRoleForActions(
-            res.locals.user.role,
-            [Role.Admin, Role.Seller]
-        );
+        validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
 
-        const variant_id = validateId(
-            req.params.variant_id
-        );
+        const variant_id = validateId(req.params.variant_id);
 
         validateBody(req.body, false);
 
-        const quantity = Number(
-            req.body.quantity
-        );
+        const stock_quantity = Number(req.body.stock_quantity);
+        const user_quantity = Number(req.body.user_quantity);
 
-        if (
-            isNaN(quantity) ||
-            quantity <= 0
-        ) {
+        if (isNaN(stock_quantity) || stock_quantity <= 0) {
+            resError(400, "Invalid quantity");
+        }
+
+        if (isNaN(user_quantity) || user_quantity <= 0) {
             resError(400, "Invalid quantity");
         }
 
@@ -151,45 +123,35 @@ export async function addInventory(
         const updated = await sql`
       UPDATE inventory
       SET
-        stock_quantity = stock_quantity + ${quantity},
-        user_quantity = user_quantity + ${quantity}
+        stock_quantity = stock_quantity + ${stock_quantity},
+        user_quantity = user_quantity + ${user_quantity}
       WHERE variant_id = ${variant_id}
       RETURNING *
     `;
 
         res.json(updated[0]);
-
     } catch (error) {
         return responseToError(error as Error, res);
     }
 }
 
-
 // Restar stock
-export async function removeInventory(
-    req: Request,
-    res: Response
-) {
+export async function removeInventory(req: Request, res: Response) {
     try {
-        validateRoleForActions(
-            res.locals.user.role,
-            [Role.Admin, Role.Seller]
-        );
+        validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
 
-        const variant_id = validateId(
-            req.params.variant_id
-        );
+        const variant_id = validateId(req.params.variant_id);
 
         validateBody(req.body, false);
 
-        const quantity = Number(
-            req.body.quantity
-        );
+        const stock_quantity = Number(req.body.stock_quantity);
+        const user_quantity = Number(req.body.user_quantity);
 
-        if (
-            isNaN(quantity) ||
-            quantity <= 0
-        ) {
+        if (isNaN(stock_quantity) || stock_quantity <= 0) {
+            resError(400, "Invalid quantity");
+        }
+
+        if (isNaN(user_quantity) || user_quantity <= 0) {
             resError(400, "Invalid quantity");
         }
 
@@ -202,26 +164,24 @@ export async function removeInventory(
             resError(404, "Inventory not found");
         }
 
-        if (
-            current[0]?.stock_quantity < quantity
-        ) {
-            resError(
-                400,
-                "Not enough stock available"
-            );
+        if (current[0]?.stock_quantity < stock_quantity) {
+            resError(400, "Not enough stock available");
+        }
+
+        if (current[0]?.user_quantity < user_quantity) {
+            resError(400, "Not enough stock available");
         }
 
         const updated = await sql`
       UPDATE inventory
       SET
-        stock_quantity = stock_quantity - ${quantity},
-        user_quantity = user_quantity - ${quantity}
+        stock_quantity = stock_quantity - ${stock_quantity},
+        user_quantity = user_quantity - ${user_quantity}
       WHERE variant_id = ${variant_id}
       RETURNING *
     `;
 
         res.json(updated[0]);
-
     } catch (error) {
         return responseToError(error as Error, res);
     }
