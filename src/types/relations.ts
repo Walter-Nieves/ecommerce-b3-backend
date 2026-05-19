@@ -24,11 +24,10 @@ interface ProductCategory {
    PAYMENT ITEM CARRITO
 ========================================= */
 
-interface PaymentItemCarrito {
-  id: string; // uuid
-  shopping_cart_id_FK: string; // FK -> carrito.id
+interface ShoppingCartItem {
+  shopping_cart_id: string; // FK -> carrito.id
   product_variant_id: string; // FK -> product_variant.id
   amount: number; // cantidad del producto
 }
 
-export type { ProductTag, ProductCategory, PaymentItemCarrito };
+export type { ProductTag, ProductCategory, ShoppingCartItem };

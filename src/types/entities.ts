@@ -142,7 +142,7 @@ interface PaymentPedido {
 /* =========================================
    PAYMENT CARRITO
 ========================================= */
-interface PaymentCarrito {
+interface ShoppingCart {
   id: string; // uuid
   user_id: string; // FK -> users.id
 }
@@ -192,7 +192,7 @@ export type {
   ReviewWithUser,
   PaymentMetodoPago,
   PaymentPedido,
-  PaymentCarrito,
+  ShoppingCart,
   PaymentSeguimientoActual,
   User,
   Address

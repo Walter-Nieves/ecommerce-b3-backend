@@ -15,7 +15,8 @@ import {
 export async function getCart(req: Request, res: Response) {
   try {
     // 🔥 Forzamos tipo seguro (evita error never)
-    const user_id = res.locals.user.sub as string;
+    const user_id = validateId(res.locals.user.sub);
+
 
     // 🔍 Buscar carrito del usuario
     const cart = await sql<{ id: string }[]>`
