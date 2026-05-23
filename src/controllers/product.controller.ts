@@ -142,20 +142,20 @@ export async function getDeletedProductBySlug(req: Request, res: Response) {
 /* ===============================
    SEARCH
 ================================ */
-// export async function searchProducts(req: Request, res: Response) {
-//   try {
-//     const {
-//       brand,
-//       category,
-//       color,
-//       clasp,
-//       strapmaterials,
-//       casematerials,
-//       crystalmaterials,
-//       typemovements,
-//       waterproofness,
-//     } = req.query;
+export async function searchProducts(req: Request, res: Response) {
+  try {
+    const { filter, input } = req.params;
 
+    // brand-null-category-null-color-null-clasp-null-strapmaterial-null-casematerial-null-crystalmaterial-null-typemovement-null-waterproofness-null/null
+
+
+    const condition_for_products: {[key: string]: string[]} = {
+      brand: [],
+      category: []
+    };
+    const condition_for_variant_products: string[] = [];
+
+    res.send([])
 //     const conditions: string[] = [];
 //     const values: any[] = [];
 
@@ -200,10 +200,10 @@ export async function getDeletedProductBySlug(req: Request, res: Response) {
 //     const result = await sql.unsafe(query, values);
 
 //     res.json(result);
-//   } catch (error) {
-//     return responseToError(error as Error, res);
-//   }
-// }
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
 
 export async function checkProductSlug(req: Request, res: Response) {
   try {

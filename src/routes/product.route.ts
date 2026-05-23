@@ -15,6 +15,7 @@ import {
   uploadProductImage,
   updateImageProduct,
   checkProductSlug,
+  searchProducts,
 
 } from "../controllers/product.controller";
 import { authVerify } from "../middlewares/auth.middleware";
@@ -32,6 +33,7 @@ router.get("/id/deleted/:id", authVerify(true), getDeletedProductById);
 router.get("/slug/:slug", getProductBySlug);
 router.get("/slug/deleted/:slug", authVerify(true), getDeletedProductBySlug);
 
+router.get("/search/:filter/:input", searchProducts)
 /* POST */
 router.post("/", authVerify(true), createProduct);
 
