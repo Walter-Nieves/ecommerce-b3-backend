@@ -1,4 +1,4 @@
-import { genre, movement_type, Role } from "./enums";
+import { cart_status, genre, movement_type, Role } from "./enums";
 import {
   PaymentOrderStatus,
   rating,
@@ -142,6 +142,7 @@ interface PaymentPedido {
 interface ShoppingCart {
   id: string; // uuid
   user_id: string; // FK -> users.id
+  status: cart_status;
 }
 
 /* =========================================

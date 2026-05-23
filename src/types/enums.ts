@@ -7,6 +7,14 @@ export enum genre {
   unisex = "U",
 }
 
+export enum cart_status {
+  pending = "pending",
+  processing = "processing",
+  shipped = "shipped",
+  delivered = "delivered",
+  cancelled= "cancelled",
+}
+
 /** Enum Tipo de movimiento
  * @Info('Guardar letras en DB, retornar texto completo al usuario')
  */
