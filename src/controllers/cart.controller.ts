@@ -32,7 +32,7 @@ export async function getCart(req: Request, res: Response) {
       return res.json({ items: [] });
     }
 
-    const cart_id = cartRow.id;  // el objeto es posiblemente undefined
+    const cart_id = cartRow.id;
 
     // 🔍 Obtener items del carrito
     const items = await sql`
