@@ -17,6 +17,7 @@ import product from "./routes/product.route";
 import reviewRoute from "./routes/review.route";
 import inventoryRoute from "./routes/inventory.route";
 import cartRoute from "./routes/cart.route";
+import payment from "./routes/payment.route";
 
 
 dotenv.config();
@@ -48,6 +49,7 @@ app.use("/api/product", product)
 app.use("/api/review", reviewRoute);
 app.use("/api/inventory", inventoryRoute)
 app.use("/api/cart", cartRoute);
+app.use("/api/payment", payment);
 
 const PORT = Number(process.env.PORT ?? 3000);
 
