@@ -16,6 +16,37 @@ import { movement_type, genre, Role } from "../types/enums";
 import { stock_state_values, waterproofness, waterproofness_values, type stock_state } from "../types/primitives";
 import { Product } from "../types/entities";
 
+type ProductVariantRow = {
+  id: string;
+  product_id: string | null;
+  sku: string;
+  color_id: string | null;
+  strap_material_id: string | null;
+  clasp_id: string | null;
+  price: number | string;
+  is_deleted: boolean;
+  created_at: string | Date;
+  updated_at: string | Date;
+  deleted_at: string | Date | null;
+  image_1: string | null;
+  image_2: string | null;
+  image_3: string | null;
+  user_quantity: number | string | null;
+  stock_quantity: number | string | null;
+};
+
+function mapProductWithVariants(product: Product, variants: ProductVariantRow[]) {
+  return {
+    ...product,
+    variants: variants.map((v) => ({
+      ...v,
+      price: Number(v.price),
+      user_quantity: Number(v.user_quantity ?? 0),
+      stock_quantity: Number(v.stock_quantity ?? 0),
+    })),
+  };
+}
+
 /* ===============================
    GET ALL (active)
 ================================ */
@@ -52,20 +83,48 @@ export async function getDeletedProducts(req: Request, res: Response) {
 /* ===============================
    GET BY ID (active)
 ================================ */
+// export async function getProductById(req: Request, res: Response) {
+//   try {
+//     const id = validateId(req.params.id);
+
+//     const product = await sql`
+//       SELECT * FROM product
+//       WHERE id = ${id} AND is_deleted = false
+//     `;
+
+//     if (product.length === 0) {
+//       resError(404, "Product not found");
+//     }
+
+//     res.json(product[0]);
+//   } catch (error) {
+//     return responseToError(error as Error, res);
+//   }
+// }
+
 export async function getProductById(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
 
-    const product = await sql`
+    const [product] = await sql<Product[]>`
       SELECT * FROM product
       WHERE id = ${id} AND is_deleted = false
+      LIMIT 1
     `;
 
-    if (product.length === 0) {
+    if (!product) {
       resError(404, "Product not found");
     }
 
-    res.json(product[0]);
+    const variants = await sql<ProductVariantRow[]>`
+      SELECT *
+      FROM product_variant
+      WHERE product_id = ${id}
+      AND is_deleted = false
+      ORDER BY created_at DESC
+    `;
+
+    res.json(mapProductWithVariants(product, variants));
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -96,20 +155,48 @@ export async function getDeletedProductById(req: Request, res: Response) {
 /* ===============================
    GET BY SLUG (active)
 ================================ */
+// export async function getProductBySlug(req: Request, res: Response) {
+//   try {
+//     const slug = validateSlug(req.params.slug, false);
+
+//     const product = await sql`
+//       SELECT * FROM product
+//       WHERE slug = ${slug} AND is_deleted = false
+//     `;
+
+//     if (product.length === 0) {
+//       resError(404, "Product not found");
+//     }
+
+//     res.json(product[0]);
+//   } catch (error) {
+//     return responseToError(error as Error, res);
+//   }
+// }
+
 export async function getProductBySlug(req: Request, res: Response) {
   try {
     const slug = validateSlug(req.params.slug, false);
 
-    const product = await sql`
+    const [product] = await sql<Product[]>`
       SELECT * FROM product
       WHERE slug = ${slug} AND is_deleted = false
+      LIMIT 1
     `;
 
-    if (product.length === 0) {
+    if (!product) {
       resError(404, "Product not found");
     }
 
-    res.json(product[0]);
+    const variants = await sql<ProductVariantRow[]>`
+      SELECT *
+      FROM product_variant
+      WHERE product_id = ${product.id}
+      AND is_deleted = false
+      ORDER BY created_at DESC
+    `;
+
+    res.json(mapProductWithVariants(product, variants));
   } catch (error) {
     return responseToError(error as Error, res);
   }
