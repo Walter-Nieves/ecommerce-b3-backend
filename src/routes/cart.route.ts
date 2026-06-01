@@ -1,29 +1,25 @@
 import { Router } from "express";
 import { authVerify } from "../middlewares/auth.middleware";
-
 import {
-  getCart,
   addToCart,
-  updateCartItem,
+  checkoutCart,
+  getCart,
+  getCurrentCart,
+  getMyPurchases,
+  getPurchaseById,
   removeCartItem,
+  updateCartItem,
 } from "../controllers/cart.controller";
 
 const router = Router();
 
-/* ===============================
-   CART ROUTES
-================================ */
-
-//  Obtener carrito
 router.get("/", authVerify(true), getCart);
-
-// Agregar producto
+router.get("/current", authVerify(true), getCurrentCart);
 router.post("/", authVerify(true), addToCart);
-
-// Actualizar cantidad
-router.put("/:id", authVerify(true), updateCartItem);
-
-//  Eliminar item
-router.delete("/:id", authVerify(true), removeCartItem);
+router.put("/item/:variantId", authVerify(true), updateCartItem);
+router.delete("/item/:variantId", authVerify(true), removeCartItem);
+router.post("/current/checkout", authVerify(true), checkoutCart);
+router.get("/purchases", authVerify(true), getMyPurchases);
+router.get("/purchases/:id", authVerify(true), getPurchaseById);
 
 export default router;
