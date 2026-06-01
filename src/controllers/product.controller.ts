@@ -11,10 +11,11 @@ import {
   validateText,
   validateNumber,
   validateUrl,
+  validateSku,
 } from "../utils/validations";
 import { movement_type, genre, Role } from "../types/enums";
 import { stock_state_values, waterproofness, waterproofness_values, type stock_state } from "../types/primitives";
-import { Product } from "../types/entities";
+import { Product, ProductVariant } from "../types/entities";
 
 /* ===============================
    GET ALL (active)
@@ -27,6 +28,21 @@ export async function getAllProducts(req: Request, res: Response) {
       ORDER BY created_at DESC
     `;
     res.json(products);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+
+export async function getAllProductVariants(req: Request, res: Response) {
+  try {
+    const id = validateId(req.params.id);
+    const variants = await sql`
+      SELECT * FROM product_variant
+      WHERE product_id = ${id}
+      AND is_deleted = false
+      ORDER BY created_at DESC
+    `;
+    res.json(variants);
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -63,6 +79,24 @@ export async function getProductById(req: Request, res: Response) {
 
     if (product.length === 0) {
       resError(404, "Product not found");
+    }
+
+    res.json(product[0]);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
+export async function getVariant(req: Request, res: Response) {
+  try {
+    const id = validateId(req.params.id);
+
+    const product = await sql`
+      SELECT * FROM product_variant
+      WHERE id = ${id} AND is_deleted = false
+    `;
+
+    if (product.length === 0) {
+      resError(404, "Variant not found");
     }
 
     res.json(product[0]);
@@ -149,57 +183,57 @@ export async function searchProducts(req: Request, res: Response) {
     // brand-null-category-null-color-null-clasp-null-strapmaterial-null-casematerial-null-crystalmaterial-null-typemovement-null-waterproofness-null/null
 
 
-    const condition_for_products: {[key: string]: string[]} = {
+    const condition_for_products: { [key: string]: string[] } = {
       brand: [],
       category: []
     };
     const condition_for_variant_products: string[] = [];
 
     res.send([])
-//     const conditions: string[] = [];
-//     const values: any[] = [];
+    //     const conditions: string[] = [];
+    //     const values: any[] = [];
 
-//     const addFilter = (field: string, queryValue?: string) => {
-//       if (queryValue) {
-//         const items = queryValue.split("-");
-//         values.push(items);
-//         conditions.push(`${field} = ANY($${values.length})`);
-//       }
-//     };
+    //     const addFilter = (field: string, queryValue?: string) => {
+    //       if (queryValue) {
+    //         const items = queryValue.split("-");
+    //         values.push(items);
+    //         conditions.push(`${field} = ANY($${values.length})`);
+    //       }
+    //     };
 
-//     addFilter("b.slug", brand as string);
-//     addFilter("c.slug", category as string);
-//     addFilter("co.slug", color as string);
-//     addFilter("cl.slug", clasp as string);
-//     addFilter("sm.slug", strapmaterials as string);
-//     addFilter("cm.slug", casematerials as string);
-//     addFilter("cr.slug", crystalmaterials as string);
-//     addFilter("tm.slug", typemovements as string);
-//     addFilter("wp.name", waterproofness as string);
+    //     addFilter("b.slug", brand as string);
+    //     addFilter("c.slug", category as string);
+    //     addFilter("co.slug", color as string);
+    //     addFilter("cl.slug", clasp as string);
+    //     addFilter("sm.slug", strapmaterials as string);
+    //     addFilter("cm.slug", casematerials as string);
+    //     addFilter("cr.slug", crystalmaterials as string);
+    //     addFilter("tm.slug", typemovements as string);
+    //     addFilter("wp.name", waterproofness as string);
 
-//     const whereClause =
-//       conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
+    //     const whereClause =
+    //       conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
 
-//     const query = `
-//       SELECT p.*
-//       FROM product p
-//       LEFT JOIN brand b ON p.brand_id = b.id
-//       LEFT JOIN category c ON p.category_id = c.id
-//       LEFT JOIN color co ON p.color_id = co.id
-//       LEFT JOIN clasp cl ON p.clasp_id = cl.id
-//       LEFT JOIN material sm ON p.strap_material_id = sm.id
-//       LEFT JOIN material cm ON p.case_material_id = cm.id
-//       LEFT JOIN material cr ON p.crystal_material_id = cr.id
-//       LEFT JOIN movement_type tm ON p.movement_type = tm.slug
-//       LEFT JOIN waterproofness wp ON p.waterproofness = wp.name
-//       WHERE p.is_deleted = false
-//       ${whereClause}
-//       ORDER BY p.created_at DESC
-//     `;
+    //     const query = `
+    //       SELECT p.*
+    //       FROM product p
+    //       LEFT JOIN brand b ON p.brand_id = b.id
+    //       LEFT JOIN category c ON p.category_id = c.id
+    //       LEFT JOIN color co ON p.color_id = co.id
+    //       LEFT JOIN clasp cl ON p.clasp_id = cl.id
+    //       LEFT JOIN material sm ON p.strap_material_id = sm.id
+    //       LEFT JOIN material cm ON p.case_material_id = cm.id
+    //       LEFT JOIN material cr ON p.crystal_material_id = cr.id
+    //       LEFT JOIN movement_type tm ON p.movement_type = tm.slug
+    //       LEFT JOIN waterproofness wp ON p.waterproofness = wp.name
+    //       WHERE p.is_deleted = false
+    //       ${whereClause}
+    //       ORDER BY p.created_at DESC
+    //     `;
 
-//     const result = await sql.unsafe(query, values);
+    //     const result = await sql.unsafe(query, values);
 
-//     res.json(result);
+    //     res.json(result);
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -211,7 +245,7 @@ export async function checkProductSlug(req: Request, res: Response) {
     validateBody(req.body, false);
     const slug = validateSlug(req.body.slug, false);
 
-    const allSlugs = await sql<{slug: string}[]>`SELECT slug FROM product`;
+    const allSlugs = await sql<{ slug: string }[]>`SELECT slug FROM product`;
 
     console.log("Existing slugs:", allSlugs);
 
@@ -235,7 +269,7 @@ export async function createProduct(req: Request, res: Response) {
     const name = validateName(req.body.name, true);
     const slug = validateSlug(req.body.slug, false);
 
-    const allSlugs = await sql<{slug: string}[]>`SELECT slug FROM product`;
+    const allSlugs = await sql<{ slug: string }[]>`SELECT slug FROM product`;
 
     console.log("Existing slugs:", allSlugs);
 
@@ -249,7 +283,7 @@ export async function createProduct(req: Request, res: Response) {
 
     const brand_id = validateId(req.body.brand_id, "Brand Id");
 
-    const allBrandIds = await sql<{id: string}[]>`SELECT id FROM brand`;
+    const allBrandIds = await sql<{ id: string }[]>`SELECT id FROM brand`;
 
     if (!allBrandIds.some(b => b.id === brand_id)) {
       resError(400, "Brand ID does not exist");
@@ -273,7 +307,7 @@ export async function createProduct(req: Request, res: Response) {
       resError(400, "Invalid waterproofness value");
     }
 
-    const allMaterials = await sql<{id: string}[]>`SELECT id FROM material`;
+    const allMaterials = await sql<{ id: string }[]>`SELECT id FROM material`;
 
     const case_material_id = validateId(req.body.case_material_id, "Case material Id");
 
@@ -341,6 +375,108 @@ export async function createProduct(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
+export async function createVariant(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    validateBody(req.body, false);
+
+
+    const product_id = validateId(req.params.id, "Product Id");
+
+    const [product] = await sql`
+      SELECT * FROM product
+      WHERE id = ${product_id} AND is_deleted = false
+    `;
+
+    if (product == null) {
+      resError(404, "Product not found");
+    }
+
+    const price = validateNumber(req.body.price, "Price", "int", 1, Number.MAX_SAFE_INTEGER);
+
+    const allMaterials = await sql<{ id: string }[]>`SELECT id FROM material`;
+    const allColors = await sql<{ id: string }[]>`SELECT id FROM color`;
+    const allClasps = await sql<{ id: string }[]>`SELECT id FROM clasp`;
+
+    const strap_material_id = validateId(req.body.strap_material_id, "Strap material Id");
+
+    if (!allMaterials.some(m => m.id === strap_material_id)) {
+      resError(400, "Strap material ID does not exist");
+    }
+
+    const color_id = validateId(req.body.color_id, "Color Id");
+
+    if (!allColors.some(m => m.id === color_id)) {
+      resError(400, "Color ID does not exist");
+    }
+    const clasp_id = validateId(req.body.clasp_id, "Clasp Id");
+
+    if (!allClasps.some(m => m.id === clasp_id)) {
+      resError(400, "Clasp ID does not exist");
+    }
+
+    const sku = validateSku(req.body.sku, false);
+
+    const user_quantity = validateNumber(req.body.user_quantity, "User quantity", "int", 0, 9999);
+    const stock_quantity = validateNumber(req.body.stock_quantity, "Stock quantity", "int", 0, 9999);
+
+    const variantBody: Omit<ProductVariant, "id" | "is_deleted" | "created_at" | "updated_at" | "deleted_at"> = {
+      product_id,
+      price,
+      strap_material_id,
+      color_id,
+      clasp_id,
+      sku,
+      image_1: validateUrl(req.body.image_1),
+      image_2: validateUrl(req.body.image_2),
+      image_3: validateUrl(req.body.image_3),
+      stock_quantity: user_quantity,
+      user_quantity: stock_quantity
+    }
+
+    const newVariant = await sql`
+      INSERT INTO product_variant (
+        product_id,
+        price,
+        strap_material_id,
+        color_id,
+        clasp_id,
+        sku,
+        user_quantity,
+        stock_quantity,
+        image_1,
+        image_2,
+        image_3,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        ${variantBody.product_id},
+        ${variantBody.price},
+        ${variantBody.strap_material_id},
+        ${variantBody.color_id},
+        ${variantBody.clasp_id},
+        ${variantBody.sku},
+        ${variantBody.user_quantity},
+        ${variantBody.stock_quantity},
+        ${variantBody.image_1},
+        ${variantBody.image_2},
+        ${variantBody.image_3},
+        NOW(),
+        NOW()
+      )
+      RETURNING *
+    `;
+
+    if (newVariant.length === 0) {
+      resError(500, "Error creating variant");
+    }
+
+    res.status(201).json(newVariant[0]);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
 
 /* ===============================
    UPDATE
@@ -360,7 +496,7 @@ export async function updateProduct(req: Request, res: Response) {
 
     const brand_id = validateId(req.body.brand_id, "Brand Id");
 
-    const allBrandIds = await sql<{id: string}[]>`SELECT id FROM brand`;
+    const allBrandIds = await sql<{ id: string }[]>`SELECT id FROM brand`;
 
     if (!allBrandIds.some(b => b.id === brand_id)) {
       resError(400, "Brand ID does not exist");
@@ -384,7 +520,7 @@ export async function updateProduct(req: Request, res: Response) {
       resError(400, "Invalid waterproofness value");
     }
 
-    const allMaterials = await sql<{id: string}[]>`SELECT id FROM material`;
+    const allMaterials = await sql<{ id: string }[]>`SELECT id FROM material`;
 
     const case_material_id = validateId(req.body.case_material_id, "Case material Id");
 

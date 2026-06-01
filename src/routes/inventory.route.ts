@@ -2,20 +2,17 @@ import { Router } from "express";
 import { authVerify } from "../middlewares/auth.middleware";
 
 import {
-    addInventory,
-    createInventory,
+    changeInventory,
+    // createInventory,
     getInventoryByVariantId,
-    removeInventory,
 } from "../controllers/inventory.controller";
 
 const router = Router();
 
 router.get("/:variant_id", authVerify(true), getInventoryByVariantId);
 
-router.post("/", authVerify(true), createInventory);
+// router.post("/", authVerify(true), createInventory);
 
-router.patch("/:variant_id/add", authVerify(true), addInventory);
-
-router.patch("/:variant_id/remove", authVerify(true), removeInventory);
+router.patch("/:variant_id/change", authVerify(true), changeInventory);
 
 export default router;

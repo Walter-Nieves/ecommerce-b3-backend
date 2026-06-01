@@ -66,12 +66,14 @@ interface Product {
  */
 interface ProductVariant {
   id: string; // uuid
-  product_id: number;
+  product_id: string;
   sku: string;
   color_id: string;
-  strap_material_id: number;
-  clasp_id: number;
+  strap_material_id: string;
+  clasp_id: string;
   price: number;
+  user_quantity: number;
+  stock_quantity: number;
   is_deleted: boolean;
   created_at: Date;
   updated_at: Date;
@@ -79,17 +81,6 @@ interface ProductVariant {
   image_1: string | null;
   image_2: string | null;
   image_3: string | null;
-}
-
-/** Entidad inventario
- * @property {string} variant_id - ID de la variante del producto, marcar como único para evitar duplicados, referencia a la entidad ProductVariant
- * @property {number} user_quantity - Cantidad total del inventario, visible para el usuario, se actualiza al ser pedido
- * @property {number} stock_quantity - Cantidad real disponible en el inventario, no visible para el usuario, se actualiza al salir del almacen y al recibir nuevos productos
- */
-interface Inventory {
-  variant_id: string; // uuid
-  user_quantity: number;
-  stock_quantity: number;
 }
 
 /** Entidad review
@@ -185,7 +176,6 @@ interface Address {
 export type {
   Product,
   ProductVariant,
-  Inventory,
   Review,
   ReviewWithUser,
   PaymentMetodoPago,

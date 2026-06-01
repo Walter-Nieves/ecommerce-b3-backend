@@ -16,7 +16,9 @@ import {
   updateImageProduct,
   checkProductSlug,
   searchProducts,
-
+  getAllProductVariants,
+  getVariant,
+  createVariant,
 } from "../controllers/product.controller";
 import { authVerify } from "../middlewares/auth.middleware";
 import { getAllImages, uploadImage } from "../middlewares/file.middleware";
@@ -33,9 +35,13 @@ router.get("/id/deleted/:id", authVerify(true), getDeletedProductById);
 router.get("/slug/:slug", getProductBySlug);
 router.get("/slug/deleted/:slug", authVerify(true), getDeletedProductBySlug);
 
+router.get("/variant/:id", getVariant);
+router.get("/all-variants/:id", getAllProductVariants);
+
 router.get("/search/:filter/:input", searchProducts)
 /* POST */
 router.post("/", authVerify(true), createProduct);
+router.post("/variant/:id", authVerify(true), createVariant);
 
 /* POST */
 router.post("/check-slug", authVerify(true), checkProductSlug);
