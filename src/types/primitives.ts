@@ -13,7 +13,7 @@ export const waterproofness_values = [
 
 type waterproofness = (typeof waterproofness_values)[number];
 
-export const stock_state_values = ["in_stock", "out_of_stock", "pre_order"];
+export const stock_state_values = ["in_stock", "out_of_stock"] as const;
 
 type stock_state = (typeof stock_state_values)[number];
 

@@ -1,4 +1,4 @@
-import { genre, movement_type, Role } from "./enums";
+import { cart_status, genre, movement_type, Role } from "./enums";
 import {
   PaymentOrderStatus,
   rating,
@@ -31,17 +31,22 @@ interface Product {
   slug: string; // unico
   description: string;
   base_price: number; // numeros enteros no decimales
-  brand_id: string; // llave foranea tipo uuid a brand
+  brand_id: string | null; // llave foranea tipo uuid a brand
   genre: genre;
   movement_type: movement_type;
   waterproofness: waterproofness;
-  case_material_id: string; // llave foranea tipo uuid a material
-  crystal_material_id: string; // llave foranea tipo uuid a material
+  case_material_id: string | null; // llave foranea tipo uuid a material
+  crystal_material_id: string | null; // llave foranea tipo uuid a material
   stock_state: stock_state;
   is_deleted: boolean; // por defecto false
   created_at: Date;
   updated_at: Date;
-  deleted_at: Date | null;
+  deleted_at?: Date | null;
+  image_1?: string | null;
+  image_2?: string | null;
+  image_3?: string | null;
+  image_4?: string | null;
+  image_5?: string | null;
 }
 
 /** Entidad variante de producto
@@ -54,8 +59,6 @@ interface Product {
  * @property {number} strap_material_id - ID del material de la correa de la variante, referencia al tipo primitivo Material
  * @property {number} clasp_id - ID del cierre de la variante, referencia al tipo primitivo Clasp
  * @property {number} price - Precio específico de la variante, puede ser diferente al precio base del producto, se muestra al usuario como el precio final de la variante
- * @property {number | null} discount_price - Precio de descuento específico de la variante, si aplica, se muestra al usuario como el precio final de la variante con descuento aplicado
- * @Info('IMPORTANTE: el descuento es el valor final, el backend no va a hacer operaciones con flotantes para evitar errores')
  * @property {boolean} is_deleted - Indica si la variante ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
  * @property {Date} created_at - Fecha de creación de la variante
  * @property {Date} updated_at - Fecha de última actualización de la variante
@@ -63,28 +66,21 @@ interface Product {
  */
 interface ProductVariant {
   id: string; // uuid
-  product_id: number;
+  product_id: string;
   sku: string;
   color_id: string;
-  strap_material_id: number;
-  clasp_id: number;
+  strap_material_id: string;
+  clasp_id: string;
   price: number;
-  discount_price?: number | null;
+  user_quantity: number;
+  stock_quantity: number;
   is_deleted: boolean;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
-}
-
-/** Entidad inventario
- * @property {number} variant_id - ID de la variante del producto, marcar como único para evitar duplicados, referencia a la entidad ProductVariant
- * @property {number} quantity - Cantidad total del inventario, visible para el usuario, se actualiza al ser pedido
- * @property {number} real_quantity - Cantidad real disponible en el inventario, no visible para el usuario, se actualiza al salir del almacen y al recibir nuevos productos
- */
-interface Inventory {
-  variant_id: number;
-  quantity: number;
-  real_quantity: number;
+  image_1: string | null;
+  image_2: string | null;
+  image_3: string | null;
 }
 
 /** Entidad review
@@ -99,49 +95,13 @@ interface Review {
   product_id: string; // uuid
   user_id: string; // uuid
   rating: rating;
-  comment: string;
+  comment: string | null;
   created_at: Date;
 }
 
-// Arrivoto, usado para saber que reseñas fueron utiles
-interface Upvote {
-  review_product_id: string; // uuid
-  review_user_id: string; // uuid
-  user_id: string; // uuid
-}
 
-/** Entidad ProductImage
- * @property {string} id - ID de la imagen del producto
- * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
- * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
- * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
- * @property {number} sort_order - Orden de clasificación de la imagen para mostrarla en la galería del producto
- * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
- */
-interface ProductImage {
-  id: string; // uuid
-  product_id: number;
-  image_url: string;
-  is_primary: boolean;
-  sort_order: number;
-  is_deleted: boolean;
-}
-
-/** Entidad ProductVariantImage
- * @property {string} id - ID de la imagen de la variante del producto
- * @property {number} product_id - ID del producto al que pertenece la imagen, referencia a la entidad Producto
- * @property {string} image_url - URL de la imagen del producto, marcar como único para evitar duplicados
- * @property {boolean} is_primary - Indica si la imagen es la imagen principal del producto
- * @property {number} sort_order - Orden de clasificación de la imagen para mostrarla en la galería del producto
- * @property {boolean} is_deleted - Indica si la imagen ha sido eliminada lógicamente sin eliminarla físicamente de la base de datos
- */
-interface ProductVariantImage {
-  id: string; // uuid
-  product_variant_id: number;
-  image_url: string;
-  is_primary: boolean;
-  sort_order: number;
-  is_deleted: boolean;
+interface ReviewWithUser extends Review {
+  user_name: string;
 }
 
 /* =========================================
@@ -170,9 +130,10 @@ interface PaymentPedido {
 /* =========================================
    PAYMENT CARRITO
 ========================================= */
-interface PaymentCarrito {
+interface ShoppingCart {
   id: string; // uuid
   user_id: string; // FK -> users.id
+  status: cart_status;
 }
 
 /* =========================================
@@ -215,15 +176,12 @@ interface Address {
 export type {
   Product,
   ProductVariant,
-  Inventory,
   Review,
-  ProductImage,
-  ProductVariantImage,
+  ReviewWithUser,
   PaymentMetodoPago,
   PaymentPedido,
-  PaymentCarrito,
+  ShoppingCart,
   PaymentSeguimientoActual,
   User,
-  Address,
-  Upvote
+  Address
 };

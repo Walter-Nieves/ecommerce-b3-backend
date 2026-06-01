@@ -3,9 +3,7 @@ import { upload, storage } from "../db/supabase";
 import {
   resError,
   responseToError,
-  validateBody,
   validateId,
-  validateNumber,
   validateRoleForActions,
   validateUrl,
 } from "../utils/validations";
