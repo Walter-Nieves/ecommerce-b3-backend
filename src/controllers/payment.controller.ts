@@ -1,8 +1,8 @@
+import { CreateOrderRequestBody, PurchaseUnit } from "@paypal/paypal-js";
+import axios from "axios";
+import dotenv from "dotenv";
 import { Request, Response } from "express";
 import { resError, responseToError } from "../utils/validations";
-import dotenv from "dotenv";
-import axios from "axios";
-import { CreateOrderRequestBody, PurchaseUnit } from "@paypal/paypal-js";
 dotenv.config();
 
 const PAYPAL_API_SECRET = process.env.PAYPAL_API_SECRET as string;
