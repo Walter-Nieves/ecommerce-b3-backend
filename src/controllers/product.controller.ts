@@ -37,7 +37,7 @@ export async function getAllProducts(req: Request, res: Response) {
 export async function getAllProductVariants(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
-    const variants = await sql`
+    const variants = await sql<ProductVariant[]>`
       SELECT * FROM product_variant
       WHERE product_id = ${id}
       AND is_deleted = false
@@ -91,16 +91,16 @@ export async function getVariant(req: Request, res: Response) {
   try {
     const id = validateId(req.params.id);
 
-    const product = await sql`
+    const [variant] = await sql<ProductVariant[]>`
       SELECT * FROM product_variant
       WHERE id = ${id} AND is_deleted = false
     `;
 
-    if (product.length === 0) {
+    if (variant == null) {
       resError(404, "Variant not found");
     }
 
-    res.json(product[0]);
+    res.json(variant);
   } catch (error) {
     return responseToError(error as Error, res);
   }
@@ -383,8 +383,8 @@ export async function createVariant(req: Request, res: Response) {
       image_1: validateUrl(req.body.image_1),
       image_2: validateUrl(req.body.image_2),
       image_3: validateUrl(req.body.image_3),
-      stock_quantity: user_quantity,
-      user_quantity: stock_quantity
+      stock_quantity,
+      user_quantity
     }
 
     const newVariant = await sql`
