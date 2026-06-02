@@ -601,11 +601,7 @@ export const updatePhotoUser = async (
       resError(500, "Photo update failed");
     }
 
-<<<<<<< HEAD
-    return res.status(201).json({ photo_url: updatedUser.photo_url });
-=======
     return res.status(200).json({ result: updatedUser.photo_url });
->>>>>>> b22ffb8a89cef59364f8ab0c0692531eb45b8a3f
   } catch (error) {
     return responseToError(error as Error, res);
   }
