@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authVerify } from "../middlewares/auth.middleware";
 import {
   addToCart,
-  checkoutCart,
+  // checkoutCart,
   getCart,
   getCurrentCart,
   getMyPurchases,
@@ -18,7 +18,7 @@ router.get("/current", authVerify(true), getCurrentCart);
 router.post("/", authVerify(true), addToCart);
 router.put("/item/:variantId", authVerify(true), updateCartItem);
 router.delete("/item/:variantId", authVerify(true), removeCartItem);
-router.post("/current/checkout", authVerify(true), checkoutCart);
+// router.post("/current/checkout", authVerify(true), checkoutCart);
 router.get("/purchases", authVerify(true), getMyPurchases);
 router.get("/purchases/:id", authVerify(true), getPurchaseById);
 

@@ -2,7 +2,10 @@ import { CreateOrderRequestBody, PurchaseUnit } from "@paypal/paypal-js";
 import axios from "axios";
 import dotenv from "dotenv";
 import { Request, Response } from "express";
-import { resError, responseToError } from "../utils/validations";
+import { resError, responseToError, validateId, validateRoleForActions } from "../utils/validations";
+import { Role } from "../types/enums";
+import { CartStatus, getCartItems, getOrCreatePendingCart } from "./cart.controller";
+import { sql } from "../db/supabase";
 dotenv.config();
 
 const PAYPAL_API_SECRET = process.env.PAYPAL_API_SECRET as string;
@@ -11,11 +14,35 @@ const PAYPAL_API_URL = process.env.PAYPAL_API_URL as string;
 
 const BACKEND_URL = process.env.BACKEND_URL ?? `http://localhost:${process.env.PORT ?? 3000}`;
 
-const currentOrders = new Map<string, PurchaseUnit>();
-
 // Hacer peticion de pago
 export async function create(req: Request, res: Response) {
     try {
+
+        validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller, Role.Buyer]);
+
+        const userId = validateId(res.locals.user.sub);
+
+        const pendingCart = await getOrCreatePendingCart(userId);
+
+        const items = await getCartItems(pendingCart.id, userId);
+
+        if (items.length === 0) {
+            resError(400, "Cart is empty");
+        }
+        // PENDIENTE, NO BORRAR
+        // const [updated] = await sql<{ id: string; status: CartStatus }[]>`
+        //       UPDATE shopping_cart
+        //       SET status = 'processing'
+        //       WHERE id = ${pendingCart.id}
+        //       AND user_id = ${userId}
+        //       AND status = 'pending'
+        //       RETURNING id, status
+        //     `;
+
+        // if (!updated) {
+        //     resError(404, "Pending cart not found");
+        // }
+
         // Peticion inicial para solicitar token de acceso
         const params = new URLSearchParams()
         params.append("grant_type", "client_credentials")
@@ -37,20 +64,31 @@ export async function create(req: Request, res: Response) {
         const order: CreateOrderRequestBody = {
             intent: "CAPTURE",
             // pendiente
-            purchase_units: [
+            purchase_units:
+            // items.map(item => {
+            //     return {
+            //         reference_id: item.shopping_cart_id,
+            //         amount: {
+            //             currency_code: "CO",
+            //             value: item.item_total.toString()
+            //         }
+            //     }
+            // })
+            [
                 {
                     description: "Unit 1",
                     amount: {
-                        currency_code: "CO",
+                        currency_code: "USD",
                         value: "10.00"
                     }
                 }
-            ],
+            ]
+            ,
             application_context: {
                 brand_name: "ChronoLux",
                 landing_page: "NO_PREFERENCE",
                 user_action: "PAY_NOW",
-                return_url: `${BACKEND_URL}/api/payment/capture`, 
+                return_url: `${BACKEND_URL}/api/payment/capture`,
                 cancel_url: `${BACKEND_URL}/api/payment/cancel`
             }
         };
@@ -61,9 +99,7 @@ export async function create(req: Request, res: Response) {
             }
         })
 
-        console.log(data);
-
-        res.json("Payment created");
+        res.json(data.links[1]);
     } catch (error) {
         return responseToError(error as Error, res);
     }

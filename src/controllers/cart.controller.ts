@@ -10,7 +10,7 @@ import {
   validateRoleForActions,
 } from "../utils/validations";
 
-type CartStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+export type CartStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 
 interface CartItemRow {
   shopping_cart_id: string;
@@ -60,7 +60,7 @@ function buildPreviewImage(row: CartItemRow) {
   );
 }
 
-async function getOrCreatePendingCart(userId: string) {
+export async function getOrCreatePendingCart(userId: string) {
   const [existing] = await sql<PendingCartRow[]>`
     SELECT id, status
     FROM shopping_cart
@@ -86,7 +86,7 @@ async function getOrCreatePendingCart(userId: string) {
   return created;
 }
 
-async function getCartItems(cartId: string, userId: string) {
+export async function getCartItems(cartId: string, userId: string) {
   const items = await sql<CartItemRow[]>`
     SELECT
       sci.shopping_cart_id,
@@ -102,18 +102,15 @@ async function getCartItems(cartId: string, userId: string) {
       p.image_2 AS product_image_2,
       p.image_3 AS product_image_3,
       p.image_4 AS product_image_4,
-      p.image_5 AS product_image_5,
-      r.rating AS review_rating,
-      r.comment AS review_comment
+      p.image_5 AS product_image_5
     FROM shopping_cart_item sci
     INNER JOIN product_variant pv ON pv.id = sci.product_variant_id
     INNER JOIN product p ON p.id = pv.product_id
-    LEFT JOIN review r
-      ON r.product_id = p.id
-      AND r.user_id = ${userId}
     WHERE sci.shopping_cart_id = ${cartId}
     ORDER BY p.name ASC
   `;
+
+  // console.log(items)
 
   return items.map((row) => {
     const amount = asNumber(row.amount) || 1;
