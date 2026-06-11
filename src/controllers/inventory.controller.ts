@@ -39,7 +39,7 @@ export async function getInventoryByVariantId(req: Request, res: Response) {
 
 
 
-// Agregar stock
+// Change stock
 export async function changeInventory(req: Request, res: Response) {
     try {
         validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);

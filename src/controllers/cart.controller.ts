@@ -1,7 +1,7 @@
 
 import { Request, Response } from "express";
 import { sql } from "../db/supabase";
-import { Role } from "../types/enums";
+import { cart_status, Role } from "../types/enums";
 import {
   resError,
   responseToError,
@@ -86,7 +86,7 @@ export async function getOrCreatePendingCart(userId: string) {
   return created;
 }
 
-export async function getCartItems(cartId: string, userId: string) {
+export async function getCartItems(cartId: string) {
   const items = await sql<CartItemRow[]>`
     SELECT
       sci.shopping_cart_id,
@@ -148,7 +148,7 @@ export async function getCurrentCart(req: Request, res: Response) {
     const userId = validateId(res.locals.user.sub);
 
     const cart = await getOrCreatePendingCart(userId);
-    const items = await getCartItems(cart.id, userId);
+    const items = await getCartItems(cart.id);
 
     const total_amount = items.reduce((acc, item) => acc + Number(item.item_total), 0);
 
@@ -292,6 +292,49 @@ export async function updateCartItem(req: Request, res: Response) {
     return responseToError(error as Error, res);
   }
 }
+export async function updateOtherCartItem(req: Request, res: Response) {
+  try {
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const cartId = validateId(req.params.cartId, "Cart id");
+    const variantId = validateId(req.params.variantId, "Variant id");
+    const amount = validateNumber(req.body.amount, "Amount", "int", 1, 1000);
+
+    const [current_shopping_item] = await sql<{ amount: number | string}[]>`
+      SELECT amount
+      FROM shopping_cart_item
+      WHERE shopping_cart_id = ${cartId}
+      AND product_variant_id = ${variantId}
+      LIMIT 1
+    `;
+
+    if (!current_shopping_item) {
+      resError(404, "Item not found in your cart");
+    }
+
+    const updated = await sql`
+      UPDATE shopping_cart_item
+      SET amount = ${amount}
+      WHERE shopping_cart_id = ${cartId}
+      AND product_variant_id = ${variantId}
+      RETURNING shopping_cart_id, product_variant_id, amount
+    `;
+
+    if (updated.length === 0) {
+      resError(404, "Item not found in your cart");
+    }
+
+    await sql`
+      UPDATE product_variant
+      SET user_quantity = user_quantity + ${Number(current_shopping_item.amount) - amount}
+      WHERE id = ${variantId}
+      RETURNING *
+    `;
+
+    return res.status(200).json({ message: "Cantidad actualizada" });
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
+}
 
 // ===============================
 // REMOVE ITEM
@@ -322,35 +365,32 @@ export async function removeCartItem(req: Request, res: Response) {
   }
 }
 
-// ===============================
-// CHECKOUT: PENDING -> PROCESSING
-// ===============================
 export async function checkoutCart(req: Request, res: Response) {
   try {
-    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller, Role.Buyer]);
-
-    const userId = validateId(res.locals.user.sub);
-
-    const pendingCart = await getOrCreatePendingCart(userId);
-    const items = await getCartItems(pendingCart.id, userId);
-
-    if (items.length === 0) {
-      resError(400, "Cart is empty");
-    }
+    validateRoleForActions(res.locals.user.role, [Role.Admin, Role.Seller]);
+    const cartId = validateId(req.params.cartId);
 
     const [updated] = await sql<{ id: string; status: CartStatus }[]>`
       UPDATE shopping_cart
-      SET status = 'processing'
-      WHERE id = ${pendingCart.id}
-      AND user_id = ${userId}
-      AND status = 'pending'
+      SET status = ${cart_status.shipped}
+      WHERE id = ${cartId}
+      AND status = ${cart_status.processing}
       RETURNING id, status
     `;
 
     if (!updated) {
       resError(404, "Pending cart not found");
     }
-
+    const items = await getCartItems(cartId);
+    // update all amounts
+    items.forEach(async (item) => {
+      await sql`
+            UPDATE product_variant
+            SET stock_quantity = user_quantity
+            WHERE id = ${item.product_variant_id}
+            RETURNING *
+            `;
+    });
     return res.status(200).json({
       message: "Cart processed",
       cart_id: updated.id,
@@ -510,6 +550,24 @@ export async function getPurchaseById(req: Request, res: Response) {
 // ===============================
 // GET CURRENT CART ALIAS
 // ===============================
-export async function getCart(req: Request, res: Response) {
-  return getCurrentCart(req, res);
+export async function getCarts(req: Request, res: Response) {
+  try {
+    const allCarts = await sql<PendingCartRow[]>`
+      SELECT id, status
+      FROM shopping_cart
+      WHERE status = ${cart_status.processing}
+    `;
+
+    const allPendingForSellerCartsAndItems = allCarts.map(async (cart) => {
+      const items = await getCartItems(cart.id);
+      return {
+        cart,
+        items
+      }
+    });
+    const result = await Promise.all(allPendingForSellerCartsAndItems);
+    return res.json(result);
+  } catch (error) {
+    return responseToError(error as Error, res);
+  }
 }

@@ -197,8 +197,8 @@ export function validateSlug(
       resError(400, "Slug cannot exceed 20 characters");
     }
   } else {
-    if (normalizedSlug.length < 30) {
-      resError(400, "Slug must be at least 30 characters long");
+    if (normalizedSlug.length < 10) {
+      resError(400, "Slug must be at least 10 characters long");
     }
     if (normalizedSlug.length > 100) {
       resError(400, "Slug cannot exceed 100 characters");

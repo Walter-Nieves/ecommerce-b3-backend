@@ -173,23 +173,186 @@ export async function getDeletedProductBySlug(req: Request, res: Response) {
   }
 }
 
+interface SearchResultType {
+  query: string | null;
+  filters: {
+    brand: string | string[] | null;
+    category: string | string[] | null;
+    color: string | string[] | null;
+    clasp: string | string[] | null;
+    strapmaterial: string | string[] | null;
+    casematerial: string | string[] | null;
+    crystalmaterial: string | string[] | null;
+    typemovement: string | string[] | null;
+    waterproofness: string | string[] | null;
+  };
+}
+
 /* ===============================
    SEARCH
 ================================ */
 export async function searchProducts(req: Request, res: Response) {
   try {
-    const { filter, input } = req.params;
+    const filter: string | null = req.params.filter as string | null;
+    const input: string | null = req.params.input as string | null;
 
-    const condition_for_products: { [key: string]: string[] } = {
-      brand: [],
-      category: []
+    // Simulación de los parámetros que recibe tu backend
+
+    // 1. Decodificar el texto de búsqueda (por los espacios %20)
+    const textSearch = input == null || input === 'null' ? null : decodeURIComponent(input);
+
+    if (filter == null || filter === 'null') {
+      resError(400, "El formato de la URL de filtros no es válido");
+    }
+    // 2. Expresión regular mágica basada en tus llaves fijas
+    // Captura todo lo que esté entre el nombre de una propiedad y la siguiente
+    // Evaluar primero el regex antes de hacer match
+    const regex = /brand-(.*?)-category-(.*?)-color-(.*?)-clasp-(.*?)-strapmaterial-(.*?)-casematerial-(.*?)-crystalmaterial-(.*?)-typemovement-(.*?)-waterproofness-(.*)/;
+    const isValidateRegex = regex.test(filter as string);
+
+    if (!isValidateRegex) {
+      resError(400, "El formato de la URL de filtros no es válido2");
+    }
+
+    const matches = filter?.match(regex);
+
+    if (!matches) {
+      resError(400, "El formato de la URL de filtros no es válido3");
+    }
+
+    // 3. Mapear los grupos capturados (el índice 0 es todo el string, del 1 al 9 son tus filtros)
+    const [
+      _,
+      brand,
+      category,
+      color,
+      clasp,
+      strapmaterial,
+      casematerial,
+      crystalmaterial,
+      typemovement,
+      waterproofness
+    ] = matches;
+
+    // Helper para limpiar los "null" y separar valores múltiples si existen
+    const formatValue = ({ value }: { value: string | undefined }) => {
+      if (!value || value === 'null') return null;
+
+      // Si detecta guiones intermedios, podrías intentar separarlos en un array.
+      // OJO: "rose-gold" se separará en ['rose', 'gold']. 
+      // Si esto pasa, lo ideal es que uses comas en el frontend como te sugerí antes.
+      return value.includes('-') ? value.split('-') : value;
     };
-    const condition_for_variant_products: string[] = [];
 
-    res.send([])
+    // 4. Construir el objeto final de filtros
+    const searchFilters: SearchResultType = {
+      query: textSearch,
+      filters: {
+        brand: formatValue({ value: brand }),
+        category: formatValue({ value: category }),
+        color: formatValue({ value: color }),
+        clasp: formatValue({ value: clasp }),
+        strapmaterial: formatValue({ value: strapmaterial }),
+        casematerial: formatValue({ value: casematerial }),
+        crystalmaterial: formatValue({ value: crystalmaterial }),
+        typemovement: formatValue({ value: typemovement }),
+        waterproofness: formatValue({ value: waterproofness }),
+      }
+    };
+
+    const result = await queryFilter(searchFilters);
+
+    res.json(result)
   } catch (error) {
     return responseToError(error as Error, res);
   }
+}
+
+async function queryFilter(searchResult: SearchResultType) {
+  const { filters } = searchResult;
+
+  // 1. Helper para saber si un filtro está vacío (null o array vacío)
+  const isNull = (val: unknown) => val === null || (Array.isArray(val) && val.length === 0);
+
+  // 2. Helper para normalizar los datos a Arrays (Postgres los necesita así para el operador = ANY)
+  const toArray = (val: SearchResultType['filters'][keyof SearchResultType['filters']]) => {
+    if (isNull(val)) return [];
+    return Array.isArray(val) ? val : [val];
+  };
+
+  // 3. Traducción y preparación de variables
+  // Traducir movimiento (ej: 'quartz' -> ['Q'])
+  const movementValues = isNull(filters.typemovement)
+    ? []
+    : toArray(filters.typemovement).map((m) => {
+      return movement_type[m as keyof typeof movement_type] || m
+    });
+
+  // Waterproofness a Mayúsculas (ej: 'diver' -> ['DIVER'])
+  const waterproofValues = isNull(filters.waterproofness)
+    ? []
+    : toArray(filters.waterproofness).map((w) => {
+      if (w && w.toUpperCase() == waterproofness_values[5]) {
+        return waterproofness_values[5]
+      }
+      return w as waterproofness
+    });
+
+  // 4. Ejecución de la consulta con tu sintaxis exacta
+  const products = await sql`
+  SELECT * FROM (
+    SELECT DISTINCT ON (p.id) 
+        p.*,
+        -- Calculamos el puntaje máximo que alcanza este producto entre todas sus variantes
+        MAX(
+          -- Puntos del Bloque A (Producto Base - Peso 10)
+          (CASE WHEN ${isNull(filters.brand)} = false AND b.slug = ANY(${toArray(filters.brand)}) THEN 10 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.typemovement)} = false AND p.movement_type = ANY(${movementValues}) THEN 10 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.waterproofness)} = false AND p.waterproofness = ANY(${waterproofValues}) THEN 10 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.casematerial)} = false AND case_mat.slug = ANY(${toArray(filters.casematerial)}) THEN 10 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.crystalmaterial)} = false AND cryst_mat.slug = ANY(${toArray(filters.crystalmaterial)}) THEN 10 ELSE 0 END) +
+          
+          -- Puntos del Bloque B (Variantes - Peso 1)
+          (CASE WHEN ${isNull(filters.color)} = false AND col.slug = ANY(${toArray(filters.color)}) THEN 1 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.strapmaterial)} = false AND strap_mat.slug = ANY(${toArray(filters.strapmaterial)}) THEN 1 ELSE 0 END) +
+          (CASE WHEN ${isNull(filters.clasp)} = false AND cl.slug = ANY(${toArray(filters.clasp)}) THEN 1 ELSE 0 END)
+        ) OVER(PARTITION BY p.id) as match_score
+    FROM product p
+    LEFT JOIN brand b ON p.brand_id = b.id
+    LEFT JOIN material case_mat ON p.case_material_id = case_mat.id
+    LEFT JOIN material cryst_mat ON p.crystal_material_id = cryst_mat.id
+    
+    LEFT JOIN product_variant pv ON p.id = pv.product_id AND pv.is_deleted = false
+    LEFT JOIN color col ON pv.color_id = col.id
+    LEFT JOIN material strap_mat ON pv.strap_material_id = strap_mat.id
+    LEFT JOIN clasp cl ON pv.clasp_id = cl.id
+    WHERE 
+        p.is_deleted = false
+        AND (
+            -- [BLOQUE A]: Filtros del Producto Base
+            (
+                (${isNull(filters.brand)} = true OR b.slug = ANY(${toArray(filters.brand)})) AND
+                (${isNull(filters.typemovement)} = true OR p.movement_type = ANY(${movementValues})) AND
+                (${isNull(filters.waterproofness)} = true OR p.waterproofness = ANY(${waterproofValues})) AND
+                (${isNull(filters.casematerial)} = true OR case_mat.slug = ANY(${toArray(filters.casematerial)})) AND
+                (${isNull(filters.crystalmaterial)} = true OR cryst_mat.slug = ANY(${toArray(filters.crystalmaterial)}))
+            )
+            OR
+            -- [BLOQUE B]: Filtros de las Variantes (Segundo chance)
+            (
+                (${isNull(filters.color)} = true OR col.slug = ANY(${toArray(filters.color)})) AND
+                (${isNull(filters.strapmaterial)} = true OR strap_mat.slug = ANY(${toArray(filters.strapmaterial)})) AND
+                (${isNull(filters.clasp)} = true OR cl.slug = ANY(${toArray(filters.clasp)}))
+            )
+        )
+    -- El orden interno sigue siendo obligatorio para que DISTINCT ON funcione correctamente por variante
+    ORDER BY p.id, match_score DESC
+  ) AS filtered_products
+  -- ¡Aquí ocurre la magia! Ahora ordenamos globalmente todos los productos únicos de mayor a menor puntaje
+  ORDER BY match_score DESC;
+`;
+
+  return products;
 }
 
 export async function checkProductSlug(req: Request, res: Response) {
