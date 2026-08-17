@@ -1,26 +1,28 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { json } from "express";
-import tag from "./routes/tag.route";
-import clasp from "./routes/clasp.route";
-import category from "./routes/category.route";
-import material from "./routes/material.route";
-import color from "./routes/color.route";
-import brand from "./routes/brand.route";
-import user from "./routes/user.route";
 import morgan from "morgan";
-import cookieParser from "cookie-parser";
-import auth from "./routes/auth.route";
 import address from "./routes/address.route";
+import auth from "./routes/auth.route";
+import brand from "./routes/brand.route";
+import cartRoute from "./routes/cart.route";
+import category from "./routes/category.route";
+import clasp from "./routes/clasp.route";
+import color from "./routes/color.route";
+import inventoryRoute from "./routes/inventory.route";
+import material from "./routes/material.route";
+import payment from "./routes/payment.route";
 import primitives from "./routes/primitves.route";
 import product from "./routes/product.route";
 import reviewRoute from "./routes/review.route";
-import inventoryRoute from "./routes/inventory.route";
-import cartRoute from "./routes/cart.route";
-import payment from "./routes/payment.route";
+import tag from "./routes/tag.route";
+import user from "./routes/user.route";
 
 
 dotenv.config();
+
+import { sql } from "./db/supabase";
 
 const app = express();
 
@@ -56,6 +58,25 @@ const PORT = Number(process.env.PORT ?? 3000);
 app.get("/ping", (_, res) => {
   res.send("pong");
 });
+
+// Función para mantener activa la base de datos de Supabase
+const startSupabaseKeepAlive = () => {
+  // Ejecuta cada 5 minutos (300,000 ms)
+  const INTERVAL_MS = 5 * 60 * 1000;
+
+  setInterval(async () => {
+    try {
+      // Hacemos una consulta super ligera para registrar actividad
+      await sql`SELECT 1`;
+      console.log(`[Keep-Alive] Consulta a Supabase exitosa: ${new Date().toISOString()}`);
+    } catch (error) {
+      console.error("[Keep-Alive] Error al pingear Supabase:", error);
+    }
+  }, INTERVAL_MS);
+};
+
+// Iniciar el keep-alive
+startSupabaseKeepAlive();
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
