@@ -1,9 +1,13 @@
+import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import uuid from "uuid";
 import { Role } from "../types/enums";
-import bcrypt from "bcrypt";
+
+interface JwtPayload_with_role extends JwtPayload {
+  role: Role
+}
 
 dotenv.config();
 
@@ -28,9 +32,9 @@ export function responseToError(error: Error, res: Response): Response {
   return res.status(500).json({ message: "Internal Server Error" });
 }
 
-export function validateToken(token: string): JwtPayload | never {
+export function validateToken(token: string): JwtPayload_with_role | never {
   try {
-    const payload = jwt.verify(token, SECRET) as JwtPayload;
+    const payload = jwt.verify(token, SECRET) as JwtPayload_with_role;
     return payload;
   } catch (error) {
     resError(401, "Invalid or expired token");
