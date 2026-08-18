@@ -59,24 +59,24 @@ app.get("/ping", (_, res) => {
   res.send("pong");
 });
 
-// Función para mantener activa la base de datos de Supabase
-const startSupabaseKeepAlive = () => {
-  // Ejecuta cada 1 hora (300,000 ms)
-  const INTERVAL_MS = 60 * 60 * 1000;
+// // Función para mantener activa la base de datos de Supabase
+// const startSupabaseKeepAlive = () => {
+//   // Ejecuta cada 1 hora (300,000 ms)
+//   const INTERVAL_MS = 60 * 60 * 1000;
 
-  setInterval(async () => {
-    try {
-      // Hacemos una consulta super ligera para registrar actividad
-      await sql`SELECT 1`;
-      console.log(`[Keep-Alive] Consulta a Supabase exitosa: ${new Date().toISOString()}`);
-    } catch (error) {
-      console.error("[Keep-Alive] Error al pingear Supabase:", error);
-    }
-  }, INTERVAL_MS);
-};
+//   setInterval(async () => {
+//     try {
+//       // Hacemos una consulta super ligera para registrar actividad
+//       await sql`SELECT 1`;
+//       console.log(`[Keep-Alive] Consulta a Supabase exitosa: ${new Date().toISOString()}`);
+//     } catch (error) {
+//       console.error("[Keep-Alive] Error al pingear Supabase:", error);
+//     }
+//   }, INTERVAL_MS);
+// };
 
-// Iniciar el keep-alive
-startSupabaseKeepAlive();
+// // Iniciar el keep-alive
+// startSupabaseKeepAlive();
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
