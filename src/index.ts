@@ -61,8 +61,8 @@ app.get("/ping", (_, res) => {
 
 // Función para mantener activa la base de datos de Supabase
 const startSupabaseKeepAlive = () => {
-  // Ejecuta cada 9 minutos (540,000 ms) para mantener la conexión activa
-  const INTERVAL_MS = 9 * 60 * 1000;
+  // Ejecuta cada 5 minutos para mantener la conexión activa
+  const INTERVAL_MS = 5 * 60 * 1000;
 
   setInterval(async () => {
     try {
